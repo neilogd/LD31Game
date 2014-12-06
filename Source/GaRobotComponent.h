@@ -68,8 +68,8 @@ public:
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
 
-	void fireWeaponA();
-	void fireWeaponB();
+	void fireWeaponA( BcF32 Radius );
+	void fireWeaponB( BcF32 Radius );
 	void takeDamage( BcF32 Damage );
 
 	std::vector< class GaRobotComponent* > getRobots( BcU32 Team );

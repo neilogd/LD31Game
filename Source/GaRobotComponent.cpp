@@ -274,9 +274,10 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 				return BcErrorCode;
 			}
 
-#if 1
-			// Work out nearest to avoid.
 			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
+
+#if 0
+			// Work out nearest to avoid.
 			GaWeaponComponent* NearestWeapon;
 			BcF32 NearestDistance  = std::numeric_limits< BcF32 >::max();
 			for( auto* Weapon : Weapons )
@@ -288,34 +289,45 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 					NearestWeapon = Weapon;
 				}
 			}
+			MaVec3d AvoidPosition = NearestWeapon->TargetPosition_;
+#else
+			MaVec3d AvoidPosition;
+			for( auto* Weapon : Weapons )
+			{
+				auto WeaponPosition = Weapon->getParentEntity()->getLocalPosition();
+				AvoidPosition += WeaponPosition;;
+			}
+			AvoidPosition /= BcF32( Weapons.size() );
 #endif
 			// Move nearest point away.
 			ThisRobot->TargetPosition_ = LocalPosition + 
-				( LocalPosition - NearestWeapon->TargetPosition_ ).normal() * Distance;
+				( LocalPosition - AvoidPosition ).normal() * Distance;
 			return BcErrorCode;
 		}
 	},
 
 	/**
 	 * Attack weapon a.
+	 * Radius to spray.
 	 */
 	{
 		"op_attack_a",
-		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		[]( GaRobotComponent* ThisRobot, BcU32 Radius )->BcU32
 		{
-			ThisRobot->fireWeaponA();
+			ThisRobot->fireWeaponA( Radius );
 			return BcErrorCode;
 		}
 	},
 
 	/**
 	 * Attack weapon b.
+	 * Radius to spray.
 	 */
 	{
 		"op_attack_b",
-		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		[]( GaRobotComponent* ThisRobot, BcU32 Radius )->BcU32
 		{
-			ThisRobot->fireWeaponB();
+			ThisRobot->fireWeaponB( Radius );
 			return BcErrorCode;
 		}
 	},
@@ -399,7 +411,7 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	Program_.push_back( GaRobotOperation( 1, "cond_always", 2, "op_avoid_attack", 32 ) );
 
 	Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_avoid_attack", 32 ) );
-	Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 0 ) );
+	Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 2 ) );
 	Program_.push_back( GaRobotOperation( 2, "cond_energy_less", 5, "op_set_state", 0 ) );
 
 	CurrentState_ = 0;
@@ -566,7 +578,7 @@ void GaRobotComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // fireWeaponA
-void GaRobotComponent::fireWeaponA()
+void GaRobotComponent::fireWeaponA( BcF32 Radius )
 {
 	if( WeaponATimer_ < 0.0f && Energy_ > WeaponACost_ )
 	{
@@ -591,13 +603,13 @@ void GaRobotComponent::fireWeaponA()
 		WeaponComponent->TargetPosition_ += MaVec3d( 
 			BcRandom::Global.randRealRange( -1.0f, 1.0f ),
 			0.0f,
-			BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * 0.1f;
+			BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * Radius;
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fireWeaponB
-void GaRobotComponent::fireWeaponB()
+void GaRobotComponent::fireWeaponB( BcF32 Radius )
 {
 	//
 }

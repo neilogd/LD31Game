@@ -14,6 +14,8 @@
 #include "GaCameraComponent.h"
 
 #include "System/Os/OsCore.h"
+#include "System/Scene/ScnSpatialComponent.h"
+#include "System/Scene/Rendering/ScnModel.h"
 
 #include "Base/BcMath.h"
 
@@ -120,6 +122,24 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 
 	// clear event.
 	BcMemZero( &LastMouseEvent_, sizeof( LastMouseEvent_ ) );
+
+	MaAABB AABB;
+	for( BcU32 Idx = 0; ; ++Idx )
+	{
+		auto Entity = ScnCore::pImpl()->findEntity( BcName( "RobotEntity", Idx ) );
+		if( Entity != nullptr )
+		{
+			auto SpatialComponent = Entity->getComponentByType< ScnModelComponent >();
+			if( SpatialComponent != nullptr )
+			{
+				AABB.expandBy( SpatialComponent->getAABB() );
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
