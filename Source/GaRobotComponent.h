@@ -16,6 +16,9 @@
 
 #include "Psybrus.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/Rendering/ScnCanvasComponent.h"
+#include "System/Scene/Rendering/ScnMaterial.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
@@ -99,6 +102,10 @@ public:
 
 	std::vector< GaRobotOperation > Program_;
 	BcU32 CurrentState_;
+
+	ScnCanvasComponentRef Canvas_;
+	ScnMaterialComponentRef Material_;
+	ScnViewComponentRef View_;
 };
 
 #endif

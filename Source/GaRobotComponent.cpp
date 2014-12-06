@@ -22,6 +22,8 @@
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsCore.h"
 
+#include "System/Os/OsCore.h"
+
 #include "Base/BcProfiler.h"
 #include "Base/BcMath.h"
 #include "Base/BcRandom.h"
@@ -277,11 +279,11 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 
 	TargetDistance_ = 1.0f;
 	TargetPosition_ = MaVec3d( 0.0f, 0.0f, 0.0f );
-	MaxVelocity_ = 16.0f;
+	MaxVelocity_ = 4.0f;
 
 	Health_ = 100.0f;
-	Energy_ = 100.0f;
-	EnergyChargeRate_ = 1.0f;
+	Energy_ = 0.0f;
+	EnergyChargeRate_ = 5.0f;
 
 	WeaponACoolDown_ = 0.01f;
 	WeaponACost_ = 1.0f;
@@ -373,10 +375,49 @@ void GaRobotComponent::update( BcF32 Tick )
 	Health_ = BcClamp( Health_, 0.0f, 100.0f );
 	Energy_ = BcClamp( Energy_ + ( EnergyChargeRate_ * Tick ), 0.0f, 100.0f );
 
-	// Weapomn timers.
+	// Weapon timers.
 	WeaponATimer_ = BcMax( WeaponATimer_ - Tick, -1.0f );
 	WeaponBTimer_ = BcMax( WeaponBTimer_ - Tick, -1.0f );
 
+	// Health/energy bars.
+	OsClient* Client = OsCore::pImpl()->getClient( 0 );
+	BcF32 Width = BcF32( Client->getWidth() ) * 0.5f;
+	BcF32 Height = BcF32( Client->getHeight() ) * 0.5f;
+	MaMat4d Projection;
+	Projection.orthoProjection( -Width, Width, Height, -Height, -1.0f, 1.0f );
+	Canvas_->pushMatrix( Projection );
+
+	Canvas_->setMaterialComponent( Material_ );
+
+	auto ScreenPos = View_->getScreenPosition( getParentEntity()->getWorldPosition() );
+	auto TLPos = ScreenPos - MaVec2d( Width / 16.0f, Height / 64.0f );
+	auto BRPos = ScreenPos + MaVec2d( Width / 16.0f, Height / 64.0f );
+
+	// Draw background.
+	Canvas_->drawBox( TLPos, BRPos, RsColour::BLACK, 0 );
+
+	// Draw inner bars.
+	TLPos += MaVec2d( 1.0f, 1.0f );
+	BRPos -= MaVec2d( 1.0f, 1.0f );
+
+	auto HealthTL = MaVec2d(
+		TLPos.x(),
+		TLPos.y() );	
+	auto HealthBR = MaVec2d( 
+		TLPos.x() + ( BRPos.x() - TLPos.x() ) * ( Health_ / 100.0f ),
+		( TLPos.y() + BRPos.y() ) * 0.5f );
+
+	auto EnergyTL = MaVec2d(
+		TLPos.x(),
+		( TLPos.y() + BRPos.y() ) * 0.5f );
+	auto EnergyBR = MaVec2d( 
+		TLPos.x() + ( BRPos.x() - TLPos.x() ) * ( Energy_ / 100.0f ),
+		BRPos.y() );
+
+	Canvas_->drawBox( HealthTL, HealthBR, RsColour::GREEN, 0 );
+	Canvas_->drawBox( EnergyTL, EnergyBR, RsColour::BLUE, 0 );
+
+	Canvas_->popMatrix( );
 
 	Super::update( Tick );
 }
@@ -390,6 +431,10 @@ void GaRobotComponent::onAttach( ScnEntityWeakRef Parent )
 
 	StartPosition_ = Parent->getLocalPosition();
 	TargetPosition_ = Parent->getLocalPosition();
+
+	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >();
+	Material_ = Parent->getComponentAnyParent( "DefaultCanvasMaterial_0" );
+	View_ = ScnCore::pImpl()->findEntity( "CameraEntity_0" )->getComponentByType< ScnViewComponent >();
 }
 
 //////////////////////////////////////////////////////////////////////////

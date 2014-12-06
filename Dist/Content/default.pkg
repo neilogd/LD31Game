@@ -27,6 +27,13 @@
 				},
 
 				{
+					"type"					: "ScnMaterialComponent",
+					"name"					: "DefaultCanvasMaterial",
+					"material"				: "$(ScnMaterial:materials.default)",
+					"permutation"			: "2d"
+				},
+
+				{
 					"type"					: "GaTestSelectionComponent" 
 				},
 
