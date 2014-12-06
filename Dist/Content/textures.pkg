@@ -1,0 +1,45 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnTexture",
+			"name"			: "default",
+
+			"source"		: "EngineContent/TextureSource/default.png",
+			"spread"		: 32
+		},
+
+		{
+			"type"			: "ScnTextureAtlas",
+			"name"			: "particles",
+
+			"source"		: [
+				"EngineContent/TextureSource/particle0.png",
+				"EngineContent/TextureSource/particle1.png",
+				"EngineContent/TextureSource/particle2.png",
+				"EngineContent/TextureSource/particle3.png"
+			]
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "test",
+
+			"source"		: "Content/Source/testtexture.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "suit",
+
+			"source"		: "Content/Source/undead/vestiti-capelliV.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "face",
+
+			"source"		: "Content/Source/undead/text_corpoV.png"
+		}
+
+	]
+}

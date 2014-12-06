@@ -1,0 +1,5 @@
+Build/
+Dist/IntermediateContent/
+Dist/PackedContent/
+/Projects/
+deploy_asmjs_online.sh

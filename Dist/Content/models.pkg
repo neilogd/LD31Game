@@ -1,0 +1,9 @@
+{
+	"resources" : [
+		{
+			"type"		: "ScnModel",
+			"name"		: "teapot",
+			"source"	: "Content/Source/teapot/wt_teapot.obj"
+		}
+	]
+}
