@@ -69,10 +69,12 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	{
 		ScnEntitySpawnParams EntityParams = 
 		{
-			"default", "RobotEntity", BcName( "ModelEntity", Idx++ ),
+			"default", BcName( "RobotEntity", Idx % 2 ), BcName( "RobotEntity", Idx ),
 			MaMat4d(),
 			getParentEntity()
 		};
+
+		++Idx;
 
 		EntityParams.Transform_.rotation( Rotation );
 		EntityParams.Transform_.translation( Position );

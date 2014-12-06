@@ -152,5 +152,6 @@ void AutoGenRegisterReflection()
 	GaCameraComponent::StaticRegisterClass();
 	GaTestSelectionComponent::StaticRegisterClass();
 	GaWorldComponent::StaticRegisterClass();
+	GaRobotOperation::StaticRegisterClass();
 	GaRobotComponent::StaticRegisterClass();
 }

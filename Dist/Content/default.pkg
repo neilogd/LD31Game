@@ -89,12 +89,30 @@
 		},
 
 		{
-			"name"		:		"RobotEntity",
+			"name"		:		"RobotEntity_0",
 			"type"		:		"ScnEntity",
 
 			"components" : [
 				{
-					"type"					: "GaRobotComponent"
+					"type"					: "GaRobotComponent",
+					"team"					: 0
+				},
+
+				{
+					"type"					: "ScnModelComponent",
+					"model"					: "$(ScnModel:models.teapot)"
+				}
+			]
+		},
+
+		{
+			"name"		:		"RobotEntity_1",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"					: "GaRobotComponent",
+					"team"					: 1
 				},
 
 				{
@@ -103,6 +121,5 @@
 				}
 			]
 		}
-
 	]
 }
