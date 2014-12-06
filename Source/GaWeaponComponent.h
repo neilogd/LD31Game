@@ -29,15 +29,19 @@ class GaWeaponComponent:
 public:
 	DECLARE_RESOURCE( GaWeaponComponent, ScnComponent );
 
-	void								initialise( const Json::Value& Object );
+	void initialise( const Json::Value& Object );
 
-	virtual void						update( BcF32 Tick );
+	virtual void update( BcF32 Tick );
 	
-	virtual void						onAttach( ScnEntityWeakRef Parent );
-	virtual void						onDetach( ScnEntityWeakRef Parent );
+	virtual void onAttach( ScnEntityWeakRef Parent );
+	virtual void onDetach( ScnEntityWeakRef Parent );
 	
-private:
-	MaVec3d								TargetPosition_;
+public:
+	MaVec3d TargetPosition_;
+	MaVec3d	Velocity_;
+	BcF32 MaxVelocity_;
+	BcF32 Damage_;
+	BcF32 Radius_;
 };
 
 #endif

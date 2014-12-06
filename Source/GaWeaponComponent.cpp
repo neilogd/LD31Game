@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include "GaWeaponComponent.h"
+#include "GaRobotComponent.h"
+#include "GaWorldComponent.h"
 
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
@@ -29,7 +31,16 @@ DEFINE_RESOURCE( GaWeaponComponent );
 
 void GaWeaponComponent::StaticRegisterClass()
 {
-	ReRegisterClass< GaWeaponComponent, Super >()
+	ReField* Fields[] = 
+	{
+		new ReField( "TargetPosition_", &GaWeaponComponent::TargetPosition_ ),
+		new ReField( "Velocity_", &GaWeaponComponent::Velocity_ ),
+		new ReField( "MaxVelocity_", &GaWeaponComponent::MaxVelocity_ ),
+		new ReField( "Damage_", &GaWeaponComponent::Damage_ ),
+		new ReField( "Radius_", &GaWeaponComponent::Radius_ ),
+	};
+	
+	ReRegisterClass< GaWeaponComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( 0 ) );
 }
 
@@ -37,7 +48,9 @@ void GaWeaponComponent::StaticRegisterClass()
 // initialise
 void GaWeaponComponent::initialise( const Json::Value& Object )
 {
-
+	MaxVelocity_ = BcF32( Object[ "velocity" ].asDouble() );
+	Damage_ = BcF32( Object[ "damage" ].asDouble() );
+	Radius_ = BcF32( Object[ "radius" ].asDouble() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,11 +58,41 @@ void GaWeaponComponent::initialise( const Json::Value& Object )
 //virtual
 void GaWeaponComponent::update( BcF32 Tick )
 {
-	Super::update( Tick );
+	// Grab entity + position.
+	auto Entity = getParentEntity();
+	auto LocalPosition = Entity->getLocalPosition();
 
-	
+	// Move distance;
+	BcF32 MoveDistance = MaxVelocity_ * Tick;
 
+	// Move if we need to move towards our target position.
+	if( ( TargetPosition_ - LocalPosition ).magnitudeSquared() > ( MoveDistance * MoveDistance ) )
+	{
+		Velocity_ = ( TargetPosition_ - LocalPosition ).normal() * MaxVelocity_;
+	}
+	else
+	{
+		Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
+		LocalPosition = TargetPosition_;
 
+		auto WorldComponent = getParentEntity()->getComponentAnyParentByType< GaWorldComponent >();
+		auto Robots = WorldComponent->getRobots( BcErrorCode );
+		for( auto* Robot : Robots )
+		{
+			auto RobotPosition = Robot->getParentEntity()->getLocalPosition();
+			if( ( LocalPosition - RobotPosition ).magnitudeSquared() < ( Radius_ * Radius_ ) )
+			{
+				Robot->takeDamage( Damage_ );
+			}
+		}
+
+		ScnCore::pImpl()->removeEntity( getParentEntity() );
+	}
+
+	LocalPosition += Velocity_ * Tick;
+
+	// Set local position.
+	Entity->setLocalPosition( LocalPosition );
 
 	// Draw a debug ball..
 	ScnDebugRenderComponent::pImpl()->drawEllipsoid( 
@@ -57,6 +100,8 @@ void GaWeaponComponent::update( BcF32 Tick )
 		MaVec3d( 1.0f, 1.0f, 1.0f ),
 		RsColour::GREEN,
 		0 );
+
+	Super::update( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,27 +110,6 @@ void GaWeaponComponent::update( BcF32 Tick )
 void GaWeaponComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
-
-	BcU32 Idx = 0;
-
-	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )
-	{
-		ScnEntitySpawnParams EntityParams = 
-		{
-			"default", BcName( "RobotEntity", Idx % 2 ), BcName( "RobotEntity", Idx ),
-			MaMat4d(),
-			getParentEntity()
-		};
-
-		++Idx;
-
-		EntityParams.Transform_.rotation( Rotation );
-		EntityParams.Transform_.translation( Position );
-		ScnCore::pImpl()->spawnEntity( EntityParams );
-	};
-
-	spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-	spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, BcPI, 0.0f ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

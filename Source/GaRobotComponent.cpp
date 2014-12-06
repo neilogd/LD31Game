@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "GaRobotComponent.h"
+#include "GaWeaponComponent.h"
 #include "GaWorldComponent.h"
 
 #include "System/Scene/Rendering/ScnShaderFileData.h"
@@ -23,6 +24,7 @@
 
 #include "Base/BcProfiler.h"
 #include "Base/BcMath.h"
+#include "Base/BcRandom.h"
 
 #include <limits>
 #include <cmath>
@@ -120,7 +122,7 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 
 	/**
 	 * Condition Far: Are we far start?
-	 * @param Distance to check against. ( < Distance )
+	 * @param Distance to check against. ( > Distance )
 	 * @return If we are this far to our start.
 	 */
 	{
@@ -207,6 +209,18 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 			return BcErrorCode;
 		}
 	},
+
+	/**
+	 * Attack weapon b.
+	 */
+	{
+		"op_attack_b",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			ThisRobot->fireWeaponB();
+			return BcErrorCode;
+		}
+	},
 };
 
 
@@ -263,13 +277,13 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 
 	TargetDistance_ = 1.0f;
 	TargetPosition_ = MaVec3d( 0.0f, 0.0f, 0.0f );
-	MaxVelocity_ = 4.0f;
+	MaxVelocity_ = 16.0f;
 
 	Health_ = 100.0f;
-	Energy_ = 0.0f;
+	Energy_ = 100.0f;
 	EnergyChargeRate_ = 1.0f;
 
-	WeaponACoolDown_ = 0.1f;
+	WeaponACoolDown_ = 0.01f;
 	WeaponACost_ = 1.0f;
 	WeaponATimer_ = 0.0f;
 	WeaponBCoolDown_ = 4.0f;
@@ -279,7 +293,9 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	// Test program.
 	Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
 	Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_near_enemy", 16, "op_attack_a", 0 ) );
 	Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
+	Program_.push_back( GaRobotOperation( 1, "cond_near_enemy", 16, "op_attack_a", 0 ) );
 	Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
 	CurrentState_ = 0;
 }
@@ -297,14 +313,25 @@ void GaRobotComponent::update( BcF32 Tick )
 		if( Op.State_ == CurrentState_ )
 		{
 			auto Condition = ProgramFunctionMap_[ Op.Condition_ ];
-			if( Condition( this, Op.ConditionVar_ ) )
+			if( Condition == nullptr )
+			{
+				BcPrintf( "No condition \"%s\"\n", Op.Condition_.c_str() );
+			}
+			else if( Condition( this, Op.ConditionVar_ ) )
 			{
 				auto Operation = ProgramFunctionMap_[ Op.Operation_ ];
-				auto RetVal = Operation( this, Op.OperationVar_ );
-				if( RetVal != BcErrorCode )
+				if( Operation == nullptr )
 				{
-					CurrentState_ = RetVal;
-					break;
+					BcPrintf( "No operation \"%s\"\n", Op.Operation_.c_str() );
+				}
+				else
+				{
+					auto RetVal = Operation( this, Op.OperationVar_ );
+					if( RetVal != BcErrorCode )
+					{
+						CurrentState_ = RetVal;
+						break;
+					}
 				}
 			}
 			ExecutedCode = BcTrue;
@@ -346,6 +373,11 @@ void GaRobotComponent::update( BcF32 Tick )
 	Health_ = BcClamp( Health_, 0.0f, 100.0f );
 	Energy_ = BcClamp( Energy_ + ( EnergyChargeRate_ * Tick ), 0.0f, 100.0f );
 
+	// Weapomn timers.
+	WeaponATimer_ = BcMax( WeaponATimer_ - Tick, -1.0f );
+	WeaponBTimer_ = BcMax( WeaponBTimer_ - Tick, -1.0f );
+
+
 	Super::update( Tick );
 }
 
@@ -372,21 +404,50 @@ void GaRobotComponent::onDetach( ScnEntityWeakRef Parent )
 // fireWeaponA
 void GaRobotComponent::fireWeaponA()
 {
+	if( WeaponATimer_ < 0.0f && Energy_ > WeaponACost_ )
+	{
+		Energy_ -= WeaponACost_;
+		WeaponATimer_ = WeaponACoolDown_;
 
+		// Spawn entity.
+		ScnEntitySpawnParams EntityParams = 
+		{
+			"default", BcName( "WeaponEntity", 0 ), BcName( "WeaponEntity", 0 ),
+			getParentEntity()->getLocalMatrix(),
+			getParentEntity()->getParentEntity()
+		};
+
+		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
+		BcAssert( Entity != nullptr );
+		auto Robots = getRobots( 1 - Team_ );
+		auto WeaponComponent = Entity->getComponentByType< GaWeaponComponent >();
+		WeaponComponent->TargetPosition_ = Robots[ 0 ]->getParentEntity()->getLocalPosition();
+		// Randomise target position slightly.
+		WeaponComponent->TargetPosition_ += MaVec3d( 
+			BcRandom::Global.randRealRange( -1.0f, 1.0f ),
+			0.0f,
+			BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // fireWeaponB
 void GaRobotComponent::fireWeaponB()
 {
-
+	//
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// takeDamage
+void GaRobotComponent::takeDamage( BcF32 Damage )
+{
+	Health_ -= Damage;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getRobots
 std::vector< GaRobotComponent* > GaRobotComponent::getRobots( BcU32 Team )
 {
-	std::vector< GaRobotComponent* > Robots;
 	auto WorldComponent = getParentEntity()->getComponentAnyParentByType< GaWorldComponent >();
 	return std::move( WorldComponent->getRobots( Team ) );
 }

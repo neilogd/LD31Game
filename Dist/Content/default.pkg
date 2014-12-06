@@ -129,12 +129,9 @@
 			"components" : [
 				{
 					"type"					: "GaWeaponComponent",
-					"team"					: 0
-				},
-
-				{
-					"type"					: "ScnModelComponent",
-					"model"					: "$(ScnModel:models.teapot)"
+					"velocity"				: 32.0,
+					"damage"				: 1.0,
+					"radius"				: 1.0
 				}
 			]
 		},
@@ -146,12 +143,9 @@
 			"components" : [
 				{
 					"type"					: "GaWeaponComponent",
-					"team"					: 1
-				},
-
-				{
-					"type"					: "ScnModelComponent",
-					"model"					: "$(ScnModel:models.teapot)"
+					"velocity"				: 4.0,
+					"damage"				: 16.0,
+					"radius"				: 4.0
 				}
 			]
 		}

@@ -66,6 +66,7 @@ public:
 
 	void fireWeaponA();
 	void fireWeaponB();
+	void takeDamage( BcF32 Damage );
 
 	std::vector< GaRobotComponent* > getRobots( BcU32 Team );
 
