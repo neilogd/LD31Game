@@ -27,11 +27,11 @@
 				},
 
 				{
-					"type"					: "GaTestSelectionComponent",
+					"type"					: "GaTestSelectionComponent" 
+				},
 
-					"options"				: [
-						"$(ScnEntity:this.TestModelEntity)"
-					]
+				{
+					"type"					: "GaWorldComponent"
 				}
 			]
 		},

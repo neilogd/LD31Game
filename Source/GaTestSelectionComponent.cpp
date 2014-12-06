@@ -49,15 +49,19 @@ void GaTestSelectionComponent::initialise( const Json::Value& Object )
 
 	Projection_.orthoProjection( -8.0f, 56.0f, 30.0f, -4.0f, -1.0f, 1.0f );
 
-	const auto& Options( Object[ "options" ] );
-	for( const auto& Option : Options )
-	{
-		TMenuEntry Entry = 
-		{
-			getPackage()->getCrossRefResource( Option.asUInt() )
-		};
 
-		Options_.push_back( Entry );
+	auto Options( Object[ "options" ] );
+	if( Options.type() != Json::nullValue )
+	{
+		for( const auto& Option : Options )
+		{
+			TMenuEntry Entry = 
+			{
+				getPackage()->getCrossRefResource( Option.asUInt() )
+			};
+
+			Options_.push_back( Entry );
+		}
 	}
 }
 
@@ -112,13 +116,6 @@ void GaTestSelectionComponent::update( BcF32 Tick )
 		Size = FontComponent_->drawCentered( Canvas_, Position, (*Option.EntityToSpawn_->getName()), Colour );
 		Position += MaVec2d( 0.0f, Size.y() );
 	}
-
-	ScnDebugRenderComponent::pImpl()->drawGrid( 
-		MaVec3d( 0.0f, 0.0f, 0.0f ),
-		MaVec3d( 500.0f, 0.0f, 500.0f ),
-		1.0f,
-		10.0f,
-		0 );
 
 
 	Canvas_->popMatrix();
@@ -193,8 +190,11 @@ eEvtReturn GaTestSelectionComponent::onKeyPress( EvtID ID, const OsEventInputKey
 		break;
 
 	case OsEventInputKeyboard::KEYCODE_RETURN:
-		LoadEntity(SelectedEntry_);
-		BcAssertMsg( PreviousSpawned_.isValid(), "We expect everythig nto have been preloaded." );
+		if( Options_.size() > 0 )
+		{
+			LoadEntity(SelectedEntry_);
+			BcAssertMsg( PreviousSpawned_.isValid(), "We expect everythig nto have been preloaded." );
+		}
 		break;
 	}
 	return evtRET_PASS;
