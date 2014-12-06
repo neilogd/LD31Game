@@ -50,12 +50,12 @@ public:
 	MaMat4d								getCameraRotationMatrix() const;
 	
 private:
-	MaVec3d								CameraTarget_;
-	MaVec3d								CameraRotation_;
-	BcF32								CameraDistance_;
-	BcF32								CameraZoom_;
+	MaVec3d CameraTarget_;
+	MaVec3d CameraRotation_;
+	BcF32 CameraDistance_;
+	BcF32 CameraZoom_;
 
-	MaVec3d								CameraRotationDelta_;
+	MaVec3d CameraRotationDelta_;
 
 	enum CameraState
 	{
@@ -64,10 +64,13 @@ private:
 		STATE_PAN
 	};
 
-	CameraState							CameraState_;
-	CameraState							NextCameraState_;
-	OsEventInputMouse					LastMouseEvent_;
-	OsEventInputKeyboard				LastKeyboardEvent_;
+	CameraState CameraState_;
+	CameraState NextCameraState_;
+	OsEventInputMouse LastMouseEvent_;
+	OsEventInputKeyboard LastKeyboardEvent_;
+
+	MaVec3d TargetPosition_;
+	MaVec3d TargetLookAt_;
 };
 
 #endif

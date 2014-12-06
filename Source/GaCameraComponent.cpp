@@ -114,15 +114,8 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 
 	Matrix.lookAt( ViewFromPosition, CameraTarget_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
 	Matrix.inverse();
-	//Matrix.rotation( MaVec3d( BcPIDIV2 - ( BcPI / 16.0f ), 0.0f, 0.0f ) );
-	//Matrix.translation( MaVec3d( 0.0f, -4.0f, -2.0f ) );
-	getParentEntity()->setLocalMatrix( Matrix );
 
-	CameraState_ = NextCameraState_;
-
-	// clear event.
-	BcMemZero( &LastMouseEvent_, sizeof( LastMouseEvent_ ) );
-
+#if 1
 	MaAABB AABB;
 	for( BcU32 Idx = 0; ; ++Idx )
 	{
@@ -140,6 +133,38 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 			break;
 		}
 	}
+
+	// Scale up AABB to maximum axis.
+	MaVec3d Centre = AABB.centre();
+	MaVec3d Dimensions = AABB.dimensions();
+	BcF32 MaxDimensions = std::max( std::max( Dimensions.x(), Dimensions.y() ), Dimensions.z() );
+	Dimensions = MaVec3d( MaxDimensions, MaxDimensions, MaxDimensions );
+	AABB = MaAABB( Centre - Dimensions * 0.75f, Centre + Dimensions * 0.75f );
+
+	MaVec3d TargetPosition = AABB.faceCentre( MaAABB::FRONT ) + MaVec3d( 0.0f, MaxDimensions * 0.5f, 0.0f ); 
+
+	TargetLookAt_ =
+		( TargetLookAt_ * 0.95f ) +
+		( AABB.centre() * 0.05f );
+
+	TargetPosition_ =
+		( TargetPosition_ * 0.95f ) +
+		( TargetPosition * 0.05f );
+
+	Matrix.lookAt( TargetPosition_, TargetLookAt_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
+	Matrix.inverse();
+
+#endif
+
+	//Matrix.rotation( MaVec3d( BcPIDIV2 - ( BcPI / 16.0f ), 0.0f, 0.0f ) );
+	//Matrix.translation( MaVec3d( 0.0f, -4.0f, -2.0f ) );
+	getParentEntity()->setLocalMatrix( Matrix );
+
+	CameraState_ = NextCameraState_;
+
+	// clear event.
+	BcMemZero( &LastMouseEvent_, sizeof( LastMouseEvent_ ) );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
