@@ -13,6 +13,7 @@
 
 #include "GaWorldComponent.h"
 #include "GaRobotComponent.h"
+#include "GaWeaponComponent.h"
 
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
@@ -119,3 +120,30 @@ std::vector< class GaRobotComponent* > GaWorldComponent::getRobots( BcU32 Team )
 	return std::move( Robots );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// getWeapons
+std::vector< class GaWeaponComponent* > GaWorldComponent::getWeapons( MaVec3d Position, BcF32 Radius )
+{
+	std::vector< GaWeaponComponent* > Weapons;
+	auto WorldEntity = getParentEntity();
+
+	for( BcU32 Idx = 0; Idx < WorldEntity->getNoofComponents(); ++Idx )
+	{
+		auto Component = WorldEntity->getComponent( Idx );
+		if( Component->isTypeOf< ScnEntity >() )
+		{
+			ScnEntityRef Entity( Component );
+			auto WeaponComponent = Entity->getComponentByType< GaWeaponComponent >();
+			if( WeaponComponent != nullptr )
+			{
+				auto WeaponTargetPosition = WeaponComponent->TargetPosition_;
+				if( ( WeaponTargetPosition - Position ).magnitude() < Radius )
+				{
+					Weapons.push_back( WeaponComponent );
+				}
+			}
+		}
+	}
+
+	return std::move( Weapons );
+}

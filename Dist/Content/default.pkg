@@ -136,7 +136,7 @@
 			"components" : [
 				{
 					"type"					: "GaWeaponComponent",
-					"velocity"				: 128.0,
+					"velocity"				: 64.0,
 					"damage"				: 2.0,
 					"radius"				: 2.0
 				}

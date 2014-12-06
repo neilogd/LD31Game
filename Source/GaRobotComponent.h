@@ -19,6 +19,7 @@
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnFont.h"
 
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
@@ -71,7 +72,8 @@ public:
 	void fireWeaponB();
 	void takeDamage( BcF32 Damage );
 
-	std::vector< GaRobotComponent* > getRobots( BcU32 Team );
+	std::vector< class GaRobotComponent* > getRobots( BcU32 Team );
+	std::vector< class GaWeaponComponent* > getWeapons( MaVec3d Position, BcF32 Radius );
 
 public:
 	BcU32 Team_;
@@ -97,6 +99,8 @@ public:
 	BcF32 WeaponBCost_;
 	BcF32 WeaponBTimer_;
 
+	BcF32 MoveTimer_;
+
 	typedef BcU32(*ProgramFunction)( GaRobotComponent*, BcU32 );
 	static std::map< std::string, ProgramFunction > ProgramFunctionMap_;
 
@@ -106,6 +110,7 @@ public:
 	ScnCanvasComponentRef Canvas_;
 	ScnMaterialComponentRef Material_;
 	ScnViewComponentRef View_;
+	ScnFontComponentRef Font_;
 };
 
 #endif

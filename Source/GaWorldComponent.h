@@ -37,6 +37,7 @@ public:
 	virtual void						onDetach( ScnEntityWeakRef Parent );
 	
 	std::vector< class GaRobotComponent* > getRobots( BcU32 Team );
+	std::vector< class GaWeaponComponent* > getWeapons( MaVec3d Position, BcF32 Radius );
 
 public:
 
