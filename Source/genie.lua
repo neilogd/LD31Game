@@ -66,7 +66,7 @@ PsyProjectGameExe( solution().name )
       }
 
       prebuildcommands {
-         --"python ../../Psybrus/reflection_parse.py " .. solution().name
+         "python ../../Psybrus/reflection_parse.py " .. solution().name
       }
 
    configuration "windows-*"

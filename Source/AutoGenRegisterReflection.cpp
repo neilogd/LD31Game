@@ -4,11 +4,11 @@
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsPackageImporter.h"
 #include "System/SysKernel.h"
+#include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsCoreImpl.h"
 #include "System/Renderer/RsTypes.h"
-#include "System/Renderer/RsRenderState.h"
-#include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsCore.h"
+#include "System/Renderer/RsSamplerState.h"
 #include "System/Scene/Import/ScnShaderImport.h"
 #include "System/Scene/Import/ScnSoundImport.h"
 #include "System/Scene/Import/ScnEntityImport.h"
@@ -63,12 +63,8 @@
 #include "Math/MaMat4d.h"
 #include "Math/MaQuat.h"
 #include "GaTestModelComponent.h"
-#include "GaLevelComponent.h"
-#include "GaTestShaderComponent.h"
-#include "GaAnimationControllerComponent.h"
 #include "GaCameraComponent.h"
 #include "GaTestSelectionComponent.h"
-#include "GaTestParticleComponent.h"
 void AutoGenRegisterReflection()
 {
 	CsDependency::StaticRegisterClass();
@@ -78,15 +74,15 @@ void AutoGenRegisterReflection()
 	CsPackage::StaticRegisterClass();
 	CsPackageDependencies::StaticRegisterClass();
 	SysKernel::StaticRegisterClass();
-	RsCoreImpl::StaticRegisterClass();
-	RsColour::StaticRegisterClass();
-	RsCore::StaticRegisterClass();
 	RsRenderTargetBlendState::StaticRegisterClass();
 	RsBlendState::StaticRegisterClass();
 	RsStencilFaceState::StaticRegisterClass();
 	RsDepthStencilState::StaticRegisterClass();
 	RsRasteriserState::StaticRegisterClass();
 	RsRenderStateDesc::StaticRegisterClass();
+	RsCoreImpl::StaticRegisterClass();
+	RsColour::StaticRegisterClass();
+	RsCore::StaticRegisterClass();
 	RsSamplerStateDesc::StaticRegisterClass();
 	ScnShaderImport::StaticRegisterClass();
 	ScnSoundImport::StaticRegisterClass();
@@ -151,10 +147,6 @@ void AutoGenRegisterReflection()
 	MaMat4d::StaticRegisterClass();
 	MaQuat::StaticRegisterClass();
 	GaTestModelComponent::StaticRegisterClass();
-	GaLevelComponent::StaticRegisterClass();
-	GaTestShaderComponent::StaticRegisterClass();
-	GaAnimationControllerComponent::StaticRegisterClass();
 	GaCameraComponent::StaticRegisterClass();
 	GaTestSelectionComponent::StaticRegisterClass();
-	GaTestParticleComponent::StaticRegisterClass();
 }

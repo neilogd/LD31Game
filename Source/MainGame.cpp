@@ -14,11 +14,7 @@
 #include "Psybrus.h"
 
 #include "GaCameraComponent.h"
-#include "GaAnimationControllerComponent.h"
-#include "GaLevelComponent.h"
 #include "GaTestModelComponent.h"
-#include "GaTestParticleComponent.h"
-#include "GaTestShaderComponent.h"
 #include "GaTestSelectionComponent.h"
 
 #include "System/Content/CsCore.h"
@@ -27,7 +23,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
-PsySetupParams GPsySetupParams( "Development Game", psySF_GAME_DEV, 1.0f / 60.0f );	
+PsySetupParams GPsySetupParams( "Ludum Dare 31: Entire Game On One Screen!", psySF_GAME_DEV, 1.0f / 60.0f );	
 
 //////////////////////////////////////////////////////////////////////////
 // PsyGameInit

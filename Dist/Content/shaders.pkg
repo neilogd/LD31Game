@@ -10,8 +10,6 @@
 			],
 
 			"backendtypes" : [
-//				"D3D11",
-				"GLSL",
 				"GLSL_ES"
 			],
 
@@ -31,8 +29,6 @@
 			],
 
 			"backendtypes" : [
-//				"D3D11",
-				"GLSL",
 				"GLSL_ES"
 			],
 
@@ -52,35 +48,11 @@
 			],
 
 			"backendtypes" : [
-//				"D3D11",
-				"GLSL",
 				"GLSL_ES"
 			],
 
 			"entrypoints"		: {
 				"vertex" : 		"vertexMain",
-				"pixel" :		"pixelMain"
-			}
-		},
-
-		{
-			"type"			: "ScnShader",
-			"name"			: "geometry_test",
-			"source"		: "Content/Engine/geometry_test.hlsl",
-
-			"codetypes"	: [
-				"D3D11_4_0"
-			],
-
-			"backendtypes" : [
-//				"D3D11",
-				"GLSL",
-				"GLSL_ES"
-			],
-
-			"entrypoints"		: {
-				"vertex" : 		"vertexMain",
-				//"geometry" : 	"geometryMain",
 				"pixel" :		"pixelMain"
 			}
 		}
