@@ -61,34 +61,45 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	// Render some huddy stuff.
 	OsClient* Client = OsCore::pImpl()->getClient( 0 );
-	BcF32 Width = BcF32( Client->getWidth() ) * 0.5f;
-	BcF32 Height = BcF32( Client->getHeight() ) * 0.5f;
+	BcF32 Width = 1280;//BcF32( Client->getWidth() ) * 0.5f;
+	BcF32 Height = 720;//BcF32( Client->getHeight() ) * 0.5f;
 	MaMat4d Projection;
 	Projection.orthoProjection( -Width, Width, Height, -Height, -1.0f, 1.0f );
 	Canvas_->pushMatrix( Projection );
 
-	MaVec2d Extents( Width / 3.0f, Height / 30.0f );
+	MaVec2d MousePos( MouseMoveEvent_.NormalisedX_ * Width, MouseMoveEvent_.NormalisedY_ * Height );
+	Canvas_->setMaterialComponent( Material_ );
+	Canvas_->drawSpriteCentered( MousePos, MaVec2d( 32, 32 ), 0, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 100 );
+
+	MaVec2d Extents( 512.0f, 64.0f );
 
 	MaMat4d PanelOffset;
-	PanelOffset.translation( MaVec3d( -( Width - Extents.x() ), -Height * 0.9f, 0.0f ) );
+
+	//PanelOffset.translation( MaVec3d( -( Width - Extents.x() ), -Height * 0.9f, 0.0f ) );
 	Canvas_->pushMatrix( PanelOffset );
 
-	// Draw background.
-	
+	// Draw background.	
 	{
 		MaVec2d Position( 0.0f, 0.0f );
-		Canvas_->setMaterialComponent( Material_ );
 		
 		for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
 		{
-			Canvas_->drawBox( -Extents + Position, Extents + Position, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
-			Position += MaVec2d( 0.0f, Extents.y() * 2.0f );
+			// Background.
+			MaVec2d TLCorner = -Extents + Position;
+			MaVec2d BRCorner = Extents + Position;
+
+			Canvas_->drawSprite( TLCorner, Extents, 2, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
+
+			// Foreground.
+			//Canvas_->drawSprite( -Extents + Position, Extents + Position, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
+
+			Position += MaVec2d( 0.0f, Extents.y()  );
 		}
 	}
 
 	{
 		MaVec2d Position( 0.0f, 0.0f );
-		Font_->setAlphaTestStepping( MaVec2d( 0.4f, 0.45f ) );
+		Font_->setAlphaTestStepping( MaVec2d( 0.4f, 0.42f ) );
 		for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
 		{
 			auto& Op = Program_[ Idx ];
@@ -100,15 +111,21 @@ void GaWorldComponent::update( BcF32 Tick )
 				Op.Operation_.c_str(),
 				Op.OperationVar_ );
 
-			Font_->draw( Canvas_, Position - Extents, Buffer, RsColour::RED, BcFalse, 11 );
-			Position += MaVec2d( 0.0f, Extents.y() * 2.0f );
+			Font_->draw( Canvas_, Position - Extents, Extents.y(), Buffer, RsColour::RED, BcFalse, 11 );
+			Position += MaVec2d( 0.0f, Extents.y() );
 		}
 	}
 
 	Canvas_->popMatrix();
+
+	// Handle mouse event.
+	for( auto& MouseEvent : MouseEvents_ )
+	{
+		MouseEvents_.clear();
+	}
+
+
 	Canvas_->popMatrix();
-
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,7 +136,7 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >();
-	Material_ = Parent->getComponentAnyParent( "DefaultCanvasMaterial_0" );
+	Material_ = Parent->getComponentAnyParent( "GuiMaterialComponent_0" );
 	View_ = ScnCore::pImpl()->findEntity( "CameraEntity_0" )->getComponentByType< ScnViewComponent >();
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 
@@ -162,7 +179,10 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
 	spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, BcPI, 0.0f ) );
 
-
+	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaWorldComponent, &GaWorldComponent::onMouseDown >( this );
+	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaWorldComponent, &GaWorldComponent::onMouseMove >( this );
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );	
+	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,7 +191,27 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 void GaWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+	OsCore::pImpl()->unsubscribeAll( this );
+}
 
+//////////////////////////////////////////////////////////////////////////
+// onMouseDown
+eEvtReturn GaWorldComponent::onMouseDown( EvtID ID, const OsEventInputMouse& Event )
+{
+	OsEventInputMouse NewEvent = Event;
+
+	MouseEvents_.push_back( NewEvent );
+
+	return evtRET_PASS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onMouseMove
+eEvtReturn GaWorldComponent::onMouseMove( EvtID ID, const OsEventInputMouse& Event )
+{
+	MouseMoveEvent_ = Event;
+
+	return evtRET_PASS;
 }
 
 //////////////////////////////////////////////////////////////////////////

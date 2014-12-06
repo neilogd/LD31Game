@@ -34,6 +34,13 @@
 				},
 
 				{
+					"type"					: "ScnMaterialComponent",
+					"name"					: "GuiMaterialComponent_0",
+					"material"				: "$(ScnMaterial:materials.gui)",
+					"permutation"			: "2d"
+				},
+
+				{
 					"type"					: "GaTestSelectionComponent" 
 				},
 
