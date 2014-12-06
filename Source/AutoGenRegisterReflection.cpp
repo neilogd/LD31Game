@@ -66,6 +66,7 @@
 #include "GaCameraComponent.h"
 #include "GaTestSelectionComponent.h"
 #include "GaWorldComponent.h"
+#include "GaRobotComponent.h"
 void AutoGenRegisterReflection()
 {
 	CsDependency::StaticRegisterClass();
@@ -151,4 +152,5 @@ void AutoGenRegisterReflection()
 	GaCameraComponent::StaticRegisterClass();
 	GaTestSelectionComponent::StaticRegisterClass();
 	GaWorldComponent::StaticRegisterClass();
+	GaRobotComponent::StaticRegisterClass();
 }
