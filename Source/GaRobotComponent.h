@@ -75,6 +75,8 @@ public:
 	std::vector< class GaRobotComponent* > getRobots( BcU32 Team );
 	std::vector< class GaWeaponComponent* > getWeapons( MaVec3d Position, BcF32 Radius );
 
+	void setProgram( std::vector< GaRobotOperation > Program );
+
 public:
 	BcU32 Team_;
 

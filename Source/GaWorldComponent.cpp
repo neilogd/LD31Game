@@ -21,6 +21,7 @@
 
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsCore.h"
+#include "System/Os/OsCore.h"
 
 #include "Base/BcProfiler.h"
 #include "Base/BcMath.h"
@@ -56,6 +57,58 @@ void GaWorldComponent::update( BcF32 Tick )
 		1.0f,
 		10.0f,
 		0 );
+
+
+	// Render some huddy stuff.
+	OsClient* Client = OsCore::pImpl()->getClient( 0 );
+	BcF32 Width = BcF32( Client->getWidth() ) * 0.5f;
+	BcF32 Height = BcF32( Client->getHeight() ) * 0.5f;
+	MaMat4d Projection;
+	Projection.orthoProjection( -Width, Width, Height, -Height, -1.0f, 1.0f );
+	Canvas_->pushMatrix( Projection );
+
+	MaVec2d Extents( Width / 3.0f, Height / 30.0f );
+
+	MaMat4d PanelOffset;
+	PanelOffset.translation( MaVec3d( -( Width - Extents.x() ), -Height * 0.9f, 0.0f ) );
+	Canvas_->pushMatrix( PanelOffset );
+
+	// Draw background.
+	
+	{
+		MaVec2d Position( 0.0f, 0.0f );
+		Canvas_->setMaterialComponent( Material_ );
+		
+		for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
+		{
+			Canvas_->drawBox( -Extents + Position, Extents + Position, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
+			Position += MaVec2d( 0.0f, Extents.y() * 2.0f );
+		}
+	}
+
+	{
+		MaVec2d Position( 0.0f, 0.0f );
+		Font_->setAlphaTestStepping( MaVec2d( 0.4f, 0.45f ) );
+		for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
+		{
+			auto& Op = Program_[ Idx ];
+			BcChar Buffer[1024];
+			BcSPrintf( Buffer, "%u: %s(%u) ? %s(%u)", 
+				Op.State_,
+				Op.Condition_.c_str(),
+				Op.ConditionVar_,
+				Op.Operation_.c_str(),
+				Op.OperationVar_ );
+
+			Font_->draw( Canvas_, Position - Extents, Buffer, RsColour::RED, BcFalse, 11 );
+			Position += MaVec2d( 0.0f, Extents.y() * 2.0f );
+		}
+	}
+
+	Canvas_->popMatrix();
+	Canvas_->popMatrix();
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,6 +117,12 @@ void GaWorldComponent::update( BcF32 Tick )
 void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+
+	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >();
+	Material_ = Parent->getComponentAnyParent( "DefaultCanvasMaterial_0" );
+	View_ = ScnCore::pImpl()->findEntity( "CameraEntity_0" )->getComponentByType< ScnViewComponent >();
+	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
+
 
 	BcU32 Idx = 0;
 
@@ -76,15 +135,34 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 			getParentEntity()
 		};
 
-		++Idx;
-
 		EntityParams.Transform_.rotation( Rotation );
 		EntityParams.Transform_.translation( Position );
-		ScnCore::pImpl()->spawnEntity( EntityParams );
+		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
+		auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
+		if( RobotComponent != nullptr && ( Idx % 2 ) == 0 )
+		{
+			// Test program.
+			Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
+			Program_.push_back( GaRobotOperation( 0, "cond_energy_greater", 25, "op_set_state", 2 ) );
+			Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
+			Program_.push_back( GaRobotOperation( 0, "cond_always", 2, "op_avoid_attack", 32 ) );
+			Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
+			Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
+			Program_.push_back( GaRobotOperation( 1, "cond_always", 2, "op_avoid_attack", 32 ) );
+			Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_avoid_attack", 32 ) );
+			Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 1 ) );
+			Program_.push_back( GaRobotOperation( 2, "cond_energy_less", 5, "op_set_state", 0 ) );
+
+			RobotComponent->setProgram( Program_ );
+		}
+
+		++Idx;
 	};
 
 	spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
 	spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, BcPI, 0.0f ) );
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -400,20 +400,6 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	WeaponBCost_ = 25.0f;
 	WeaponBTimer_ = 0.0f;
 	
-	// Test program.
-	Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
-	Program_.push_back( GaRobotOperation( 0, "cond_energy_greater", 25, "op_set_state", 2 ) );
-	Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
-	Program_.push_back( GaRobotOperation( 0, "cond_always", 2, "op_avoid_attack", 32 ) );
-
-	Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
-	Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
-	Program_.push_back( GaRobotOperation( 1, "cond_always", 2, "op_avoid_attack", 32 ) );
-
-	Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_avoid_attack", 32 ) );
-	Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 2 ) );
-	Program_.push_back( GaRobotOperation( 2, "cond_energy_less", 5, "op_set_state", 0 ) );
-
 	CurrentState_ = 0;
 }
 
@@ -635,4 +621,12 @@ std::vector< class GaWeaponComponent* > GaRobotComponent::getWeapons( MaVec3d Po
 {
 	auto WorldComponent = getParentEntity()->getComponentAnyParentByType< GaWorldComponent >();
 	return std::move( WorldComponent->getWeapons( Position, Radius ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setProgram
+void GaRobotComponent::setProgram( std::vector< GaRobotOperation > Program )
+{
+	Program_ = Program;
+	CurrentState_ = 0;
 }

@@ -17,6 +17,8 @@
 #include "Psybrus.h"
 #include "System/Scene/ScnComponent.h"
 
+#include "GaRobotComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // GaExampleComponentRef
 typedef ReObjectRef< class GaWorldComponent > GaWorldComponentRef;
@@ -40,6 +42,12 @@ public:
 	std::vector< class GaWeaponComponent* > getWeapons( MaVec3d Position, BcF32 Radius );
 
 public:
+	std::vector< GaRobotOperation > Program_;
+
+	ScnCanvasComponentRef Canvas_;
+	ScnMaterialComponentRef Material_;
+	ScnViewComponentRef View_;
+	ScnFontComponentRef Font_;
 
 };
 

@@ -22,7 +22,14 @@
 				"blendstate" : {
 					"rendertarget" : [
 						{
-							"enable" : false
+							"enable" : true,
+							"srcblend" : "srcalpha",
+							"destblend" : "invsrcalpha",
+							"blendop" : "add",
+							"srcblendalpha" : "srcalpha",
+							"destblendalpha" : "invsrcalpha",
+							"blendopalpha" : "add",
+							"writemask" : 15
 						}
 					]
 				},
