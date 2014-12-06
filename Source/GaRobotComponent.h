@@ -30,20 +30,23 @@ public:
 public:
 	GaRobotOperation(){};
 	GaRobotOperation( 
+			BcU32 State,
 			std::string Condition,
-			BcF32 ConditionVar,
+			BcU32 ConditionVar,
 			std::string Operation,
-			BcF32 OperationVar ) :
+			BcU32 OperationVar ) :
+		State_( State ),
 		Condition_( Condition ),
 		ConditionVar_( ConditionVar ),
 		Operation_( Operation ),
 		OperationVar_( OperationVar )
 	{}
 
+	BcU32 State_;
 	std::string Condition_;
-	BcF32 ConditionVar_;
+	BcU32 ConditionVar_;
 	std::string Operation_;
-	BcF32 OperationVar_;
+	BcU32 OperationVar_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,17 +69,24 @@ public:
 private:
 	BcU32 Team_;
 
+	MaVec3d StartPosition_;
+
 	BcF32 TargetDistance_;
 	MaVec3d TargetPosition_;
 
 	BcF32 MaxVelocity_;
 	MaVec3d Velocity_;
 
-	typedef BcBool(*ProgramFunction)( GaRobotComponent*, BcF32 );
+	BcF32 Health_;
+	BcF32 Energy_;
+
+	BcF32 EnergyChargeRate_;
+
+	typedef BcU32(*ProgramFunction)( GaRobotComponent*, BcU32 );
 	static std::map< std::string, ProgramFunction > ProgramFunctionMap_;
 
 	std::vector< GaRobotOperation > Program_;
-
+	BcU32 CurrentState_;
 };
 
 #endif

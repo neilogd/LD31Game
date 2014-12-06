@@ -31,23 +31,35 @@
 std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::ProgramFunctionMap_ =
 {
 	/**
+	 * Condition always: Always perform this operation.
+	 * @param Distance to check against. ( < Distance )
+	 * @return If we are this near to any enemy.
+	 */
+	{
+		"cond_always",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			return BcTrue;
+		}
+	},
+
+	/**
 	 * Condition Near: Are we near an enemy?
 	 * @param Distance to check against. ( < Distance )
 	 * @return If we are this near to any enemy.
 	 */
 	{
-		"near",
-		[]( GaRobotComponent* ThisRobot, BcF32 Distance )->BcBool
+		"cond_near_enemy",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
 		{
 			auto Robots = ThisRobot->getRobots( 1 - ThisRobot->Team_ );
-			BcF32 DistSquared = std::numeric_limits< BcF32 >::max();
 			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
 
 			BcBool RetVal = BcFalse;
 			for( auto Robot : Robots )
 			{
 				auto RobotPosition = Robot->getParentEntity()->getLocalPosition();
-				if( ( RobotPosition - LocalPosition ).magnitudeSquared() < ( Distance * Distance ) )
+				if( ( RobotPosition - LocalPosition ).magnitudeSquared() < BcF32( Distance * Distance ) )
 				{
 					RetVal = BcTrue;
 				}
@@ -63,22 +75,42 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 	 * @return If we are farther away from all enenmies than specified distance.
 	 */
 	{
-		"far",
-		[]( GaRobotComponent* ThisRobot, BcF32 Distance )->BcBool
+		"cond_far_enemy",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
 		{
 			auto Robots = ThisRobot->getRobots( 1 - ThisRobot->Team_ );
-			BcF32 DistSquared = std::numeric_limits< BcF32 >::max();
 			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
 
-			BcBool RetVal = BcTrue;
+			BcBool RetVal = BcFalse;
 			for( auto Robot : Robots )
 			{
 				auto RobotPosition = Robot->getParentEntity()->getLocalPosition();
-				if( ( RobotPosition - LocalPosition ).magnitudeSquared() < ( Distance * Distance ) )
+				if( ( RobotPosition - LocalPosition ).magnitudeSquared() < BcF32( Distance * Distance ) )
 				{
-					RetVal = BcFalse;
+					RetVal = BcTrue;
 					break;
 				}
+			}
+
+			return !RetVal;
+		}
+	},
+
+	/**
+	 * Condition Near: Are we near start?
+	 * @param Distance to check against. ( < Distance )
+	 * @return If we are this near to our start.
+	 */
+	{
+		"cond_near_start",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
+
+			BcBool RetVal = BcFalse;
+			if( ( ThisRobot->StartPosition_ - LocalPosition ).magnitudeSquared() < BcF32( Distance * Distance ) )
+			{
+				RetVal = BcTrue;
 			}
 
 			return RetVal;
@@ -86,12 +118,44 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 	},
 
 	/**
+	 * Condition Far: Are we far start?
+	 * @param Distance to check against. ( < Distance )
+	 * @return If we are this far to our start.
+	 */
+	{
+		"cond_far_start",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
+
+			BcBool RetVal = BcFalse;
+			if( ( ThisRobot->StartPosition_ - LocalPosition ).magnitudeSquared() < BcF32( Distance * Distance ) )
+			{
+				RetVal = BcTrue;
+			}
+
+			return !RetVal;
+		}
+	},
+
+	/**
+	 * Set state.
+	 */
+	 {
+	 	"op_set_state",
+		[]( GaRobotComponent* ThisRobot, BcU32 State )->BcU32
+		{
+			return State;
+	 	}
+	 },
+
+	/**
 	 * Move: Nearest target. 
 	 * Will pick a point between us and nearest enemy robot at specified distance.
 	 */
 	{
-		"move",
-		[]( GaRobotComponent* ThisRobot, BcF32 Distance )->BcBool
+		"op_target_enemy",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
 		{
 			auto Robots = ThisRobot->getRobots( 1 - ThisRobot->Team_ );
 			BcF32 NearestDistSquared = std::numeric_limits< BcF32 >::max();
@@ -111,10 +175,26 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 			BcAssert( NearestRobot != nullptr );
 
 			auto RobotPosition = NearestRobot->getParentEntity()->getLocalPosition();
-			ThisRobot->TargetPosition_ = RobotPosition - ( ( RobotPosition - LocalPosition ).normal() * Distance );
-			return BcTrue;
+			ThisRobot->TargetPosition_ = RobotPosition - ( ( RobotPosition - LocalPosition ).normal() * BcF32( Distance ) );
+			return BcErrorCode;
 		}
-	}
+	},
+
+	/**
+	 * Move: Start. 
+	 * Will pick a point between us and start at specified distance.
+	 */
+	{
+		"op_target_start",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
+			auto StartPosition = ThisRobot->StartPosition_;
+			ThisRobot->TargetPosition_ = StartPosition - ( ( StartPosition - LocalPosition ).normal() * BcF32( Distance ) );
+			return BcErrorCode;
+		}
+	},
+
 };
 
 
@@ -128,11 +208,16 @@ void GaRobotComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Team_", &GaRobotComponent::Team_ ),
+		new ReField( "StartPosition_", &GaRobotComponent::StartPosition_ ),
 		new ReField( "TargetDistance_", &GaRobotComponent::TargetDistance_ ),
 		new ReField( "TargetPosition_", &GaRobotComponent::TargetPosition_ ),
 		new ReField( "MaxVelocity_", &GaRobotComponent::MaxVelocity_ ),
 		new ReField( "Velocity_", &GaRobotComponent::Velocity_ ),
+		new ReField( "Health_", &GaRobotComponent::Health_ ),
+		new ReField( "Energy_", &GaRobotComponent::Energy_ ),
+		new ReField( "EnergyChargeRate_", &GaRobotComponent::EnergyChargeRate_ ),
 		new ReField( "Program_", &GaRobotComponent::Program_ ),
+		new ReField( "CurrentState_", &GaRobotComponent::CurrentState_ ),
 	};
 	
 	ReRegisterClass< GaRobotComponent, Super >( Fields )
@@ -162,9 +247,16 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	TargetPosition_ = MaVec3d( 0.0f, 0.0f, 0.0f );
 	MaxVelocity_ = 4.0f;
 
-	// Test program!
-	// If we are further than 8 units, move to within 8 units of it.
-	Program_.push_back( GaRobotOperation( "far", 8.0f, "move", 8.0f ) );
+	Health_ = 100.0f;
+	Energy_ = 0.0f;
+	EnergyChargeRate_ = 1.0f;
+	CurrentState_ = 0;
+
+	// Test program.
+	Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
+	Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
+	Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -173,14 +265,31 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 void GaRobotComponent::update( BcF32 Tick )
 {
 	// Handle robot program.
-	for( auto& Op : Program_ )
+	BcBool ExecutedCode = BcFalse;
+	for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
 	{
-		auto Condition = ProgramFunctionMap_[ Op.Condition_ ];
-		if( Condition( this, Op.ConditionVar_ ) )
+		const auto& Op = Program_[ Idx ];
+		if( Op.State_ == CurrentState_ )
 		{
-			auto Operation = ProgramFunctionMap_[ Op.Operation_ ];
-			Operation( this, Op.OperationVar_ );
+			auto Condition = ProgramFunctionMap_[ Op.Condition_ ];
+			if( Condition( this, Op.ConditionVar_ ) )
+			{
+				auto Operation = ProgramFunctionMap_[ Op.Operation_ ];
+				auto RetVal = Operation( this, Op.OperationVar_ );
+				if( RetVal != BcErrorCode )
+				{
+					CurrentState_ = RetVal;
+					break;
+				}
+			}
+			ExecutedCode = BcTrue;
 		}
+	}
+
+	// Did we fail to run code? If so, reset to state 0.
+	if( ExecutedCode == BcFalse )
+	{
+		CurrentState_ = 0;
 	}
 
 	// Grab entity + position.
@@ -208,6 +317,9 @@ void GaRobotComponent::update( BcF32 Tick )
 	// Set local position.
 	Entity->setLocalPosition( LocalPosition );
 
+	// Handle health + energy.
+	Health_ = BcClamp( Health_, 0.0f, 100.0f );
+	Energy_ = BcClamp( Energy_ + ( EnergyChargeRate_ * Tick ), 0.0f, 100.0f );
 
 	Super::update( Tick );
 }
@@ -219,7 +331,8 @@ void GaRobotComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
-	//TargetPosition_ = Parent->getLocalPosition();
+	StartPosition_ = Parent->getLocalPosition();
+	TargetPosition_ = Parent->getLocalPosition();
 
 }
 
