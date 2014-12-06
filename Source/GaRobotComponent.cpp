@@ -146,13 +146,13 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 	/**
 	 * Set state.
 	 */
-	 {
-	 	"op_set_state",
+	{
+		"op_set_state",
 		[]( GaRobotComponent* ThisRobot, BcU32 State )->BcU32
 		{
 			return State;
-	 	}
-	 },
+		}
+	},
 
 	/**
 	 * Move: Nearest target. 
@@ -390,6 +390,7 @@ void GaRobotComponent::update( BcF32 Tick )
 	Canvas_->setMaterialComponent( Material_ );
 
 	auto ScreenPos = View_->getScreenPosition( getParentEntity()->getWorldPosition() );
+	ScreenPos -= MaVec2d( 0.0f, Height / 8.0f );
 	auto TLPos = ScreenPos - MaVec2d( Width / 16.0f, Height / 64.0f );
 	auto BRPos = ScreenPos + MaVec2d( Width / 16.0f, Height / 64.0f );
 

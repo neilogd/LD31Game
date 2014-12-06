@@ -28,7 +28,7 @@
 
 				{
 					"type"					: "ScnMaterialComponent",
-					"name"					: "DefaultCanvasMaterial",
+					"name"					: "DefaultCanvasMaterial_0",
 					"material"				: "$(ScnMaterial:materials.default)",
 					"permutation"			: "2d"
 				},
@@ -136,9 +136,9 @@
 			"components" : [
 				{
 					"type"					: "GaWeaponComponent",
-					"velocity"				: 32.0,
-					"damage"				: 1.0,
-					"radius"				: 1.0
+					"velocity"				: 128.0,
+					"damage"				: 2.0,
+					"radius"				: 2.0
 				}
 			]
 		},
@@ -150,9 +150,9 @@
 			"components" : [
 				{
 					"type"					: "GaWeaponComponent",
-					"velocity"				: 4.0,
-					"damage"				: 16.0,
-					"radius"				: 4.0
+					"velocity"				: 8.0,
+					"damage"				: 32.0,
+					"radius"				: 8.0
 				}
 			]
 		}
