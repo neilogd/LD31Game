@@ -22,6 +22,7 @@
 #include "System/Content/CsCore.h"
 
 #include "Base/BcProfiler.h"
+#include "Base/BcMath.h"
 
 #include <limits>
 #include <cmath>
@@ -195,6 +196,17 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 		}
 	},
 
+	/**
+	 * Attack weapon a.
+	 */
+	{
+		"op_attack_a",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			ThisRobot->fireWeaponA();
+			return BcErrorCode;
+		}
+	},
 };
 
 
@@ -216,6 +228,12 @@ void GaRobotComponent::StaticRegisterClass()
 		new ReField( "Health_", &GaRobotComponent::Health_ ),
 		new ReField( "Energy_", &GaRobotComponent::Energy_ ),
 		new ReField( "EnergyChargeRate_", &GaRobotComponent::EnergyChargeRate_ ),
+		new ReField( "WeaponACoolDown_", &GaRobotComponent::WeaponACoolDown_ ),
+		new ReField( "WeaponACost_", &GaRobotComponent::WeaponACost_ ),
+		new ReField( "WeaponATimer_", &GaRobotComponent::WeaponATimer_ ),
+		new ReField( "WeaponBCoolDown_", &GaRobotComponent::WeaponBCoolDown_ ),
+		new ReField( "WeaponBCost_", &GaRobotComponent::WeaponBCost_ ),
+		new ReField( "WeaponBTimer_", &GaRobotComponent::WeaponBTimer_ ),
 		new ReField( "Program_", &GaRobotComponent::Program_ ),
 		new ReField( "CurrentState_", &GaRobotComponent::CurrentState_ ),
 	};
@@ -250,13 +268,20 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	Health_ = 100.0f;
 	Energy_ = 0.0f;
 	EnergyChargeRate_ = 1.0f;
-	CurrentState_ = 0;
 
+	WeaponACoolDown_ = 0.1f;
+	WeaponACost_ = 1.0f;
+	WeaponATimer_ = 0.0f;
+	WeaponBCoolDown_ = 4.0f;
+	WeaponBCost_ = 8.0f;
+	WeaponBTimer_ = 0.0f;
+	
 	// Test program.
 	Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
 	Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
 	Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
 	Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
+	CurrentState_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -333,7 +358,6 @@ void GaRobotComponent::onAttach( ScnEntityWeakRef Parent )
 
 	StartPosition_ = Parent->getLocalPosition();
 	TargetPosition_ = Parent->getLocalPosition();
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -345,29 +369,24 @@ void GaRobotComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getRobots
-std::vector< GaRobotComponentRef > GaRobotComponent::getRobots( BcU32 Team )
+// fireWeaponA
+void GaRobotComponent::fireWeaponA()
 {
-	std::vector< GaRobotComponentRef > Robots;
 
-	// TODO: Cache it or something?
+}
 
+//////////////////////////////////////////////////////////////////////////
+// fireWeaponB
+void GaRobotComponent::fireWeaponB()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRobots
+std::vector< GaRobotComponent* > GaRobotComponent::getRobots( BcU32 Team )
+{
+	std::vector< GaRobotComponent* > Robots;
 	auto WorldComponent = getParentEntity()->getComponentAnyParentByType< GaWorldComponent >();
-	auto WorldEntity = WorldComponent->getParentEntity();
-
-	for( BcU32 Idx = 0; Idx < WorldEntity->getNoofComponents(); ++Idx )
-	{
-		auto Component = WorldEntity->getComponent( Idx );
-		if( Component->isTypeOf< ScnEntity >() )
-		{
-			ScnEntityRef Entity( Component );
-			auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
-			if( RobotComponent != nullptr && ( RobotComponent->Team_ == Team || Team == BcErrorCode ) )
-			{
-				Robots.push_back( RobotComponent );
-			}
-		}
-	}
-
-	return std::move( Robots );
+	return std::move( WorldComponent->getRobots( Team ) );
 }

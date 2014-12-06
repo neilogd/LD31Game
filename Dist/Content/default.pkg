@@ -120,6 +120,40 @@
 					"model"					: "$(ScnModel:models.teapot)"
 				}
 			]
+		},
+
+		{
+			"name"		:		"WeaponEntity_0",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"					: "GaWeaponComponent",
+					"team"					: 0
+				},
+
+				{
+					"type"					: "ScnModelComponent",
+					"model"					: "$(ScnModel:models.teapot)"
+				}
+			]
+		},
+
+		{
+			"name"		:		"WeaponEntity_1",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"					: "GaWeaponComponent",
+					"team"					: 1
+				},
+
+				{
+					"type"					: "ScnModelComponent",
+					"model"					: "$(ScnModel:models.teapot)"
+				}
+			]
 		}
 	]
 }

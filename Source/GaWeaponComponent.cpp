@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		GaWorldComponent.cpp
+* File:		GaWeaponComponent.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,8 +11,7 @@
 * 
 **************************************************************************/
 
-#include "GaWorldComponent.h"
-#include "GaRobotComponent.h"
+#include "GaWeaponComponent.h"
 
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
@@ -26,17 +25,17 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
-DEFINE_RESOURCE( GaWorldComponent );
+DEFINE_RESOURCE( GaWeaponComponent );
 
-void GaWorldComponent::StaticRegisterClass()
+void GaWeaponComponent::StaticRegisterClass()
 {
-	ReRegisterClass< GaWorldComponent, Super >()
+	ReRegisterClass< GaWeaponComponent, Super >()
 		.addAttribute( new ScnComponentAttribute( 0 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // initialise
-void GaWorldComponent::initialise( const Json::Value& Object )
+void GaWeaponComponent::initialise( const Json::Value& Object )
 {
 
 }
@@ -44,23 +43,26 @@ void GaWorldComponent::initialise( const Json::Value& Object )
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void GaWorldComponent::update( BcF32 Tick )
+void GaWeaponComponent::update( BcF32 Tick )
 {
 	Super::update( Tick );
 
-	// Draw floor.
-	ScnDebugRenderComponent::pImpl()->drawGrid( 
-		MaVec3d( 0.0f, 0.0f, 0.0f ),
-		MaVec3d( 500.0f, 0.0f, 500.0f ),
-		1.0f,
-		10.0f,
+	
+
+
+
+	// Draw a debug ball..
+	ScnDebugRenderComponent::pImpl()->drawEllipsoid( 
+		getParentEntity()->getWorldPosition(),
+		MaVec3d( 1.0f, 1.0f, 1.0f ),
+		RsColour::GREEN,
 		0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
-void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
+void GaWeaponComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
@@ -89,33 +91,8 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 //////////////////////////////////////////////////////////////////////////
 // onDetach
 //virtual
-void GaWorldComponent::onDetach( ScnEntityWeakRef Parent )
+void GaWeaponComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
 
 }
-
-//////////////////////////////////////////////////////////////////////////
-// getRobots
-std::vector< class GaRobotComponent* > GaWorldComponent::getRobots( BcU32 Team )
-{
-	std::vector< GaRobotComponent* > Robots;
-	auto WorldEntity = getParentEntity();
-
-	for( BcU32 Idx = 0; Idx < WorldEntity->getNoofComponents(); ++Idx )
-	{
-		auto Component = WorldEntity->getComponent( Idx );
-		if( Component->isTypeOf< ScnEntity >() )
-		{
-			ScnEntityRef Entity( Component );
-			auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
-			if( RobotComponent != nullptr && ( RobotComponent->Team_ == Team || Team == BcErrorCode ) )
-			{
-				Robots.push_back( RobotComponent );
-			}
-		}
-	}
-
-	return std::move( Robots );
-}
-

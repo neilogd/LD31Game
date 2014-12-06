@@ -65,6 +65,7 @@
 #include "GaTestModelComponent.h"
 #include "GaCameraComponent.h"
 #include "GaTestSelectionComponent.h"
+#include "GaWeaponComponent.h"
 #include "GaWorldComponent.h"
 #include "GaRobotComponent.h"
 void AutoGenRegisterReflection()
@@ -151,6 +152,7 @@ void AutoGenRegisterReflection()
 	GaTestModelComponent::StaticRegisterClass();
 	GaCameraComponent::StaticRegisterClass();
 	GaTestSelectionComponent::StaticRegisterClass();
+	GaWeaponComponent::StaticRegisterClass();
 	GaWorldComponent::StaticRegisterClass();
 	GaRobotOperation::StaticRegisterClass();
 	GaRobotComponent::StaticRegisterClass();
