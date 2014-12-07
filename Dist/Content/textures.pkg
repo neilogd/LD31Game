@@ -41,7 +41,8 @@
 			"source"		: [
 				"Content/Source/white.png",
 				"Content/Source/panel0.png",
-				"Content/Source/panel_state.png"
+				"Content/Source/panel_state.png",
+				"Content/Source/arrow.png"
 			]
 		}
 	]

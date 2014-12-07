@@ -51,6 +51,10 @@ public:
 		//
 		STATE_MAIN,
 
+		// 
+		START,
+		RESET,
+
 		//
 		INVALID
 	};

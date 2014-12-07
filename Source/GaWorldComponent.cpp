@@ -185,7 +185,7 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	MaVec2d MousePos( MouseMoveEvent_.NormalisedX_ * Width, MouseMoveEvent_.NormalisedY_ * Height );
 	Canvas_->setMaterialComponent( Material_ );
-	Canvas_->drawSpriteCentered( MousePos, MaVec2d( 32, 32 ), 0, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 100 );
+	Canvas_->drawSprite( MousePos, MaVec2d( 64.0f, 64.0f ), 3, RsColour( 0.0f, 1.0f, 0.0f, 1.0f ), 100 );
 
 	MaVec2d Extents( 512.0f, 64.0f );
 
@@ -200,6 +200,47 @@ void GaWorldComponent::update( BcF32 Tick )
 	Hotspots.push_back( HSStateMain );
 
 	MaMat4d PanelOffset;
+	MaVec2d StateIcon( 64.0f, 64.0f );
+	MaVec2d MainButtonSize( 256.0f, 128.0f );
+	BcF32 FontSize = 32.0f;
+	RsColour Colour = RsColour::BLACK;
+	MaVec2d Button( 128.0f, 64.0f );
+	BcChar Buffer[ 1024 ];
+
+	MaVec2d StartButtonPosition( -MainButtonSize.x(), -Height + 64.0f );
+	MaVec2d ResetButtonPosition( MainButtonSize.x(), -Height + 64.0f );
+
+	Canvas_->drawSpriteCentered( StartButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+	Canvas_->drawSpriteCentered( ResetButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+
+	/**
+	 * START HOTSPOT
+	 */
+	Hotspot HSStart = 
+	{
+		StartButtonPosition * PanelOffset, MainButtonSize,
+		BcErrorCode,
+		HotspotType::START
+	};
+
+	Font_->drawCentered( Canvas_, StartButtonPosition, FontSize * 2.0f, "START", RsColour::WHITE, 12 );
+
+	Hotspots.push_back( HSStart );
+
+	/**
+	 * RESET HOTSPOT
+	 */
+	Hotspot HSSReset = 
+	{
+		ResetButtonPosition * PanelOffset, MainButtonSize,
+		BcErrorCode,
+		HotspotType::RESET
+	};
+
+	Font_->drawCentered( Canvas_, ResetButtonPosition, FontSize* 2.0f, "RESET", RsColour::WHITE, 12 );
+
+	Hotspots.push_back( HSSReset );
+
 
 	PanelOffset.translation( MaVec3d( -( Width - Extents.x() ) * 0.8f, -Height * 0.8f, 0.0f ) );
 	Canvas_->pushMatrix( PanelOffset );
@@ -213,8 +254,6 @@ void GaWorldComponent::update( BcF32 Tick )
 			// Background.
 			MaVec2d TLCorner = -Extents + Position;
 			MaVec2d BRCorner = Extents + Position;
-
-			MaVec2d StateIcon( 64.0f, 64.0f );
 
 			MaVec2d TLStateCorner = TLCorner - MaVec2d( 64.0f, 0.0f );
 			MaVec2d TotalExtents = Extents + MaVec2d( 64.0f, 0.0f );
@@ -256,11 +295,6 @@ void GaWorldComponent::update( BcF32 Tick )
 				}
 
 			}
-
-			BcF32 FontSize = 32.0f;
-			RsColour Colour = RsColour::BLACK;
-			MaVec2d Button( 128.0f, 64.0f );
-			BcChar Buffer[ 1024 ];
 
 			/**
 			 * STATE HOTSPOT.
@@ -681,6 +715,13 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		UpdateRobotProgram = BcTrue;
 		break;
 
+	case HotspotType::START:
+		// Start game?
+		break;
+
+	case HotspotType::RESET:
+		// Reset game?
+		break;
 
 	default:
 		break;
@@ -734,16 +775,22 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	if( PlayerRobot_ != nullptr )
 	{
 		// Test program.
-		Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 1, "op_target_enemy", 24 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 25, "op_set_state", 2 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 24, "op_set_state", 1 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 2, "op_avoid_attack", 32 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_target_start", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 2, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 2, "op_avoid_attack", 32 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_avoid_attack", 32 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_attack_a", 1 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 10, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
 
 		PlayerRobot_->setProgram( Program_ );
 		EnemyRobot_->setProgram( Program_ );
