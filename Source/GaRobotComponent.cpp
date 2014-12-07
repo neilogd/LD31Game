@@ -437,7 +437,7 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	WeaponACost_ = 10.0f;
 	WeaponATimer_ = 0.0f;
 	WeaponBCoolDown_ = 4.0f;
-	WeaponBCost_ = 25.0f;
+	WeaponBCost_ = 50.0f;
 	WeaponBTimer_ = 0.0f;
 	MoveTimer_ = 0.0f;
 	
@@ -445,7 +445,7 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	CurrentOp_ = 0;
 	NextOp_ = 0;
 	CurrentOpTimer_ = 0.0f;
-	CurrentOpTime_ = 0.2f;
+	CurrentOpTime_ = 0.1f;
 
 	MoveAngle_ = 0.0f;
 }

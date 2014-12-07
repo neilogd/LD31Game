@@ -134,8 +134,8 @@
 				{
 					"type"					: "GaWeaponComponent",
 					"velocity"				: 64.0,
-					"damage"				: 2.0,
-					"radius"				: 1.25
+					"damage"				: 6.0,
+					"radius"				: 1.5
 				}
 			]
 		},
@@ -148,8 +148,8 @@
 				{
 					"type"					: "GaWeaponComponent",
 					"velocity"				: 8.0,
-					"damage"				: 32.0,
-					"radius"				: 8.0
+					"damage"				: 30.0,
+					"radius"				: 4.0
 				}
 			]
 		},
