@@ -71,7 +71,7 @@ void GaTestSelectionComponent::initialise( const Json::Value& Object )
 void GaTestSelectionComponent::update( BcF32 Tick )
 {
 	Super::update( Tick );
-
+#if 0
 	Canvas_->clear();
 	Canvas_->pushMatrix( Projection_ );
 
@@ -120,6 +120,7 @@ void GaTestSelectionComponent::update( BcF32 Tick )
 
 	Canvas_->popMatrix();
 	Canvas_->popMatrix();
+#endif // 0
 }
 
 //////////////////////////////////////////////////////////////////////////

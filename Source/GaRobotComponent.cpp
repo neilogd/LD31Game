@@ -223,7 +223,7 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 
 	/**
 	 * Move: Nearest target. 
-	 * Will pick a point between us and nearest enemy robot at specified distance.
+	 * Will pick a point around nearest enemy robot at specified distance.
 	 */
 	{
 		"op_target_enemy",
@@ -244,11 +244,15 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 				}
 			}
 
-		
 			if( NearestRobot != nullptr )
 			{
 				auto RobotPosition = NearestRobot->getParentEntity()->getLocalPosition();
-				ThisRobot->TargetPosition_ = RobotPosition - ( ( RobotPosition - LocalPosition ).normal() * BcF32( Distance ) );
+
+				BcF32 RandomDelta = ThisRobot->MoveAngle_;
+				ThisRobot->MoveAngle_ += BcPIDIV4;
+				MaVec3d Offset( BcCos( RandomDelta ), 0.0f, -BcSin( RandomDelta ) );
+
+				ThisRobot->TargetPosition_ = RobotPosition - ( Offset * BcF32( Distance ) );
 			}
 			return BcErrorCode;
 		}
@@ -256,7 +260,7 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 
 	/**
 	 * Move: Start. 
-	 * Will pick a point between us and start at specified distance.
+	 * Will pick a point around start at specified distance.
 	 */
 	{
 		"op_target_start",
@@ -264,7 +268,12 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 		{
 			auto LocalPosition = ThisRobot->getParentEntity()->getLocalPosition();
 			auto StartPosition = ThisRobot->StartPosition_;
-			ThisRobot->TargetPosition_ = StartPosition - ( ( StartPosition - LocalPosition ).normal() * BcF32( Distance ) );
+
+			BcF32 RandomDelta = ThisRobot->MoveAngle_;
+			ThisRobot->MoveAngle_ += BcPIDIV4;
+			MaVec3d Offset( BcCos( RandomDelta ), 0.0f, -BcSin( RandomDelta ) );
+
+			ThisRobot->TargetPosition_ = StartPosition - ( Offset * BcF32( Distance ) );
 			return BcErrorCode;
 		}
 	},
@@ -376,11 +385,12 @@ void GaRobotComponent::StaticRegisterClass()
 		new ReField( "CurrentOp_", &GaRobotComponent::CurrentOp_ ),
 		new ReField( "NextOp_", &GaRobotComponent::NextOp_ ),
 		new ReField( "CurrentOpTimer_", &GaRobotComponent::CurrentOpTimer_ ),
-		new ReField( "CurrentOpTime_", &GaRobotComponent::CurrentOpTime_ )
+		new ReField( "CurrentOpTime_", &GaRobotComponent::CurrentOpTime_ ),
+		new ReField( "MoveAngle_", &GaRobotComponent::MoveAngle_ ),
 	};
 	
 	ReRegisterClass< GaRobotComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 0 ) );
+		.addAttribute( new ScnComponentAttribute( 1 ) );
 }
 
 void GaRobotCommandEntry::StaticRegisterClass()
@@ -436,6 +446,8 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	NextOp_ = 0;
 	CurrentOpTimer_ = 0.0f;
 	CurrentOpTime_ = 0.2f;
+
+	MoveAngle_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -443,6 +455,11 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 //virtual
 void GaRobotComponent::update( BcF32 Tick )
 {
+	if( Health_ <= 0.0f )
+	{
+		return;
+	}
+
 	CurrentOpTimer_ -= Tick;
 	if( CurrentOpTimer_ < 0.0f )
 	{
@@ -492,10 +509,11 @@ void GaRobotComponent::update( BcF32 Tick )
 				}
 			}
 
-			// Did we fail to run code? If so, reset to state 0.
+			// Did we fail to run code? If so, reset to op 0 and the state of op 0.
 			if( ExecutedCode == BcFalse )
 			{
-				CurrentState_ = 0;
+				NextOp_ = 0;
+				CurrentState_ = Program_[ NextOp_ ].State_;
 			}
 		}
 	}
@@ -509,25 +527,60 @@ void GaRobotComponent::update( BcF32 Tick )
 	{
 		if( MoveTimer_ <= 0.0f )
 		{
-			Velocity_ =  ( TargetPosition_ - LocalPosition ).normal() * MaxVelocity_;
+			Velocity_ +=  ( TargetPosition_ - LocalPosition ).normal() * MaxVelocity_;
 		}
 	}
 	else
 	{
-		Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
+		BcF32 SlowDownTick = BcClamp( Tick * 50.0f, 0.0f, 1.0f );
+		Velocity_ -= ( Velocity_ * SlowDownTick );
+	}
+
+	// TODO LATER: Do rotation.
+	if( Velocity_.magnitudeSquared() > 0.1f )
+	{
+		auto Angle = std::atan2( Velocity_.z(), Velocity_.x() ) + BcPIDIV2;
+
+		MaMat4d RotMat;
+		RotMat.rotation( MaVec3d( 0.0f, Angle, 0.0f ) );
+		Base_->setLocalMatrix( RotMat );
+	}
+
+	// TODO LATER: Do rotation.
+	auto Robots = getRobots( 1 - Team_ );
+	if( Robots.size() > 0 )
+	{
+		auto Robot = Robots[ 0 ];
+		auto RobotPosition = Robot->getParentEntity()->getLocalPosition();
+		auto VectorTo = RobotPosition - LocalPosition;
+
+		// Push out of away.
+		if( VectorTo.magnitude() < 3.0f )
+		{
+			BcF32 Factor = ( 3.0f - VectorTo.magnitude() ) / 3.0f;
+			BcF32 InvFactor = 1.0f - Factor;
+
+			Velocity_ = ( -( VectorTo.normal() * MaxVelocity_ ) * Factor * 3.0f ) + ( Velocity_ * InvFactor );
+		}
+
+		// Face turret.
+		auto Angle = std::atan2( VectorTo.z(), VectorTo.x() ) + BcPIDIV2;
+
+		MaMat4d RotMat;
+		RotMat.rotation( MaVec3d( 0.0f, Angle, 0.0f ) );
+		Turret_->setLocalMatrix( RotMat );
 	}
 
 	LocalPosition += Velocity_ * Tick;
 
-	// TODO LATER: Do rotation.
-	if( Velocity_.magnitudeSquared() > 0.0f )
-	{
-		std::atan2( Velocity_.z(), Velocity_.x() );
-	}
-
 	// Slow down velocity.
 	BcF32 SlowDownTick = BcClamp( Tick * 10.0f, 0.0f, 1.0f );
 	Velocity_ -= ( Velocity_ * SlowDownTick );
+
+	if( Velocity_.magnitude() > MaxVelocity_ )
+	{
+		Velocity_ = Velocity_.normal() * MaxVelocity_;
+	}
 
 	// Set local position.
 	Entity->setLocalPosition( LocalPosition );
@@ -605,6 +658,22 @@ void GaRobotComponent::onAttach( ScnEntityWeakRef Parent )
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >();
 	Material_ = Parent->getComponentAnyParent( "DefaultCanvasMaterial_0" );
 	View_ = ScnCore::pImpl()->findEntity( "CameraEntity_0" )->getComponentByType< ScnViewComponent >();
+
+	auto spawnPart = [ & ]( const BcName PartName )
+	{
+		ScnEntitySpawnParams EntityParams = 
+		{
+			"default", PartName, BcName( PartName.getValue(), getParentEntity()->getName().getID() ),
+			MaMat4d(),
+			getParentEntity()
+		};
+		return ScnCore::pImpl()->spawnEntity( EntityParams );
+	};
+
+	Base_ = spawnPart( "RobotBase" );
+	Turret_ = spawnPart( "RobotTurret" );
+
+	MoveAngle_ = getName().getID() == 0 ? 0.0f : BcPI;
 }
 
 //////////////////////////////////////////////////////////////////////////

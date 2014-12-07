@@ -54,16 +54,16 @@ namespace
 			"Condition: Is an attack incoming within (X) units of us?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "cond_health_less",	 	"He<X",
-			"Condition: Is health lower than (X)%%?", BcTrue,
+			"Condition: Is health lower than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 		GaRobotCommandEntry( "cond_health_greater", 	"Hw>X",
-			"Condition: Is health greater than (X)%%?", BcTrue,
+			"Condition: Is health greater than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80	, 90, 100 } ),
 		GaRobotCommandEntry( "cond_energy_less",	 	"En<X",
-			"Condition: Is energy lower than (X)%%?", BcTrue,
+			"Condition: Is energy lower than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 		GaRobotCommandEntry( "cond_energy_greater", 	"En>X",
-			"Condition: Is energy greater than (X)%%?", BcTrue,
+			"Condition: Is energy greater than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 	};
 
@@ -112,9 +112,9 @@ void GaWorldComponent::StaticRegisterClass()
 	ReRegisterClass< GaWorldComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( 0 ) );
 
-
 	ReEnumConstant* HotspotTypeConstants[] = 
 	{
+		new ReEnumConstant( "STATE", (BcU32)HotspotType::STATE ),
 		new ReEnumConstant( "CONDITION", (BcU32)HotspotType::CONDITION ),
 		new ReEnumConstant( "CONDITION_VAR", (BcU32)HotspotType::CONDITION_VAR ),
 		new ReEnumConstant( "OPERATION", (BcU32)HotspotType::OPERATION ),
@@ -171,6 +171,9 @@ void GaWorldComponent::update( BcF32 Tick )
 		10.0f,
 		0 );
 
+	Font_->setAlphaTestStepping( MaVec2d( 0.45f, 0.46f ) );
+
+	Canvas_->clear();
 
 	// Render some huddy stuff.
 	OsClient* Client = OsCore::pImpl()->getClient( 0 );
@@ -198,7 +201,7 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	MaMat4d PanelOffset;
 
-	PanelOffset.translation( MaVec3d( -( Width - Extents.x() ), -Height * 0.9f, 0.0f ) );
+	PanelOffset.translation( MaVec3d( -( Width - Extents.x() ) * 0.8f, -Height * 0.8f, 0.0f ) );
 	Canvas_->pushMatrix( PanelOffset );
 
 	// Draw background.	
@@ -211,26 +214,68 @@ void GaWorldComponent::update( BcF32 Tick )
 			MaVec2d TLCorner = -Extents + Position;
 			MaVec2d BRCorner = Extents + Position;
 
+			MaVec2d StateIcon( 64.0f, 64.0f );
+
+			MaVec2d TLStateCorner = TLCorner - MaVec2d( 64.0f, 0.0f );
+			MaVec2d TotalExtents = Extents + MaVec2d( 64.0f, 0.0f );
+
 			Canvas_->setMaterialComponent( Material_ );
-			Canvas_->drawSprite( TLCorner, Extents, 2, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
+
+			static std::array< RsColour, 8 > StateColours =
+			{
+				RsColour( 1.0f, 0.0f, 0.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 1.0f, 0.5f, 0.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 1.0f, 1.0f, 0.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 0.0f, 1.0f, 0.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 0.0f, 1.0f, 1.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 0.0f, 0.0f, 1.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 0.5f, 0.0f, 1.0f, 1.0f ),// + RsColour::GRAY * 0.5f,
+				RsColour( 1.0f, 0.0f, 0.5f, 1.0f ),// + RsColour::GRAY * 0.5f,
+			};
+
+			BcAssert( Program_[ Idx ].State_ < 8 );
+			RsColour BgColour = StateColours[ Program_[ Idx ].State_ ];
+
+			if( PlayerRobot_ != nullptr )
+			{
+				if( PlayerRobot_->CurrentState_ != Program_[ Idx ].State_ )
+				{
+					BgColour = BgColour * 0.5f;
+					BgColour.a( 1.0f );
+				}
+			}
+
+			Canvas_->drawSprite( TLCorner, Extents, 1, BgColour, 10 );
+			Canvas_->drawSprite( TLStateCorner, StateIcon, 2, BgColour, 10 );
 
 			if( PlayerRobot_ != nullptr )
 			{
 				if( PlayerRobot_->CurrentOp_ == Idx )
 				{
-					Canvas_->drawSpriteCentered( TLCorner + Extents * 0.5f, Extents * 1.1f, 0, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 9 );
+					Canvas_->drawSpriteCentered( TLStateCorner + TotalExtents * 0.5f, TotalExtents * 1.1f, 0, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 9 );
 				}
 
-				if( PlayerRobot_->CurrentState_ != Program_[ Idx ].State_ )
-				{
-					Canvas_->drawSpriteCentered( TLCorner + Extents * 0.5f, Extents * 1.1f, 0, RsColour( 0.0f, 0.0f, 0.0f, 0.5f ), 11 );
-				}
 			}
 
 			BcF32 FontSize = 32.0f;
-			RsColour Colour = RsColour::WHITE;
+			RsColour Colour = RsColour::BLACK;
 			MaVec2d Button( 128.0f, 64.0f );
 			BcChar Buffer[ 1024 ];
+
+			/**
+			 * STATE HOTSPOT.
+			 */
+			Hotspot HSState = 
+			{
+				TLStateCorner * PanelOffset, StateIcon,
+				Idx,
+				HotspotType::STATE
+			};
+
+			BcSPrintf( Buffer, "%u", Program_[ Idx ].State_ );
+			Font_->drawCentered( Canvas_, TLStateCorner + StateIcon * 0.5f, FontSize, Buffer, Colour, 12 );
+
+			Hotspots.push_back( HSState );
 
 			/**
 			 * CONDITION HOTSPOT.
@@ -323,7 +368,6 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	{
 		MaVec2d Position( 0.0f, 0.0f );
-		Font_->setAlphaTestStepping( MaVec2d( 0.4f, 0.42f ) );
 		for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
 		{
 			auto& Op = Program_[ Idx ];
@@ -343,10 +387,55 @@ void GaWorldComponent::update( BcF32 Tick )
 	Canvas_->popMatrix();
 
 	// Draw panel over the top of what we have already.
-	if( GuiState_ == GuiState::SELECTION || GuiState_ == GuiState::SELECTION_VAR )
+	if( GuiState_ == GuiState::SELECTION ||
+		GuiState_ == GuiState::SELECTION_STATE ||
+		GuiState_ == GuiState::SELECTION_VAR )
 	{
 		PanelOffset.translation( MaVec3d( SelectionPosition_.x(), SelectionPosition_.y(), 0.0f ) );
 		Canvas_->pushMatrix( PanelOffset );
+
+		////////////////////////////////////////////////////
+		// Condition + operation.
+		if( HotspotType_ == HotspotType::STATE )
+		{
+			MaVec2d Position( 0.0f, 0.0f );
+			MaVec2d TotalSize( 0.0f, 0.0f );
+
+			for( BcU32 Idx = 0; Idx < 8; ++Idx )
+			{
+				Hotspot HSSelection = 
+				{
+					Position * PanelOffset, MaVec2d(),
+					Idx,
+					HotspotType::STATE_SELECTION
+				};
+
+				RsColour Colour = RsColour::BLACK;
+
+				if( HSSelection.ID_ == LastHighlightedHotspot_.ID_ &&
+					HSSelection.Type_ == LastHighlightedHotspot_.Type_ )
+				{
+					Colour = RsColour::GREEN;
+				}
+
+				BcF32 FontSize = Extents.y() * 0.5f;
+
+				BcChar Buffer[ 1024 ];
+				BcSPrintf( Buffer, "%u", Idx );
+				auto Size = Font_->draw( Canvas_, Position, FontSize, Buffer, Colour, BcFalse, 21 );
+				Position.y( Position.y() + FontSize );
+
+				TotalSize.x( std::max( Size.x(), TotalSize.x() ) );
+				TotalSize.y( TotalSize.y() + FontSize );
+
+				HSSelection.Extents_ = Size;
+
+				Hotspots.push_back( HSSelection );
+			}
+
+			Canvas_->setMaterialComponent( Material_ );
+			Canvas_->drawSprite( MaVec2d( 0.0f, 0.0f ), TotalSize, 0, RsColour( 1.0f, 1.0f, 1.0f, 0.8f ), 20 );
+		}
 
 		////////////////////////////////////////////////////
 		// Condition + operation.
@@ -394,7 +483,6 @@ void GaWorldComponent::update( BcF32 Tick )
 
 			Canvas_->setMaterialComponent( Material_ );
 			Canvas_->drawSprite( MaVec2d( 0.0f, 0.0f ), TotalSize, 0, RsColour( 1.0f, 1.0f, 1.0f, 0.8f ), 20 );
-
 		}
 
 		////////////////////////////////////////////////////
@@ -530,6 +618,11 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		GuiState_ = GuiState::MAIN;
 		break;
 
+	case HotspotType::STATE:
+		GuiState_ = GuiState::SELECTION_STATE;
+		SelectionPosition_ = MousePosition;
+		break;
+
 	case HotspotType::CONDITION:
 		GuiState_ = GuiState::SELECTION;
 		SelectionPosition_ = MousePosition;
@@ -555,6 +648,7 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		BcAssert( SelectedID_ < Program_.size() );
 		BcAssert( ClickedHotspot.ID_ < 8 );
 		Program_[ SelectedID_ ].State_ = ClickedHotspot.ID_;
+		UpdateRobotProgram = BcTrue;
 		break;
 
 	case HotspotType::CONDITION_SELECTION:
@@ -562,12 +656,14 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		BcAssert( SelectedID_ < Program_.size() );
 		BcAssert( ClickedHotspot.ID_ < ConditionEntries_.size() );
 		Program_[ SelectedID_ ].Condition_ = ConditionEntries_[ ClickedHotspot.ID_ ].Name_;
+		UpdateRobotProgram = BcTrue;
 		break;
 
 	case HotspotType::CONDITION_VAR_SELECTION:
 		GuiState_ = GuiState::MAIN;
 		BcAssert( SelectedID_ < Program_.size() );
 		Program_[ SelectedID_ ].ConditionVar_ = ClickedHotspot.ID_;
+		UpdateRobotProgram = BcTrue;
 		break;
 
 	case HotspotType::OPERATION_SELECTION:
@@ -575,12 +671,14 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		BcAssert( SelectedID_ < Program_.size() );		
 		BcAssert( ClickedHotspot.ID_ < OperationEntries_.size() );
 		Program_[ SelectedID_ ].Operation_ = OperationEntries_[ ClickedHotspot.ID_ ].Name_;
+		UpdateRobotProgram = BcTrue;
 		break;
 
 	case HotspotType::OPERATION_VAR_SELECTION:
 		GuiState_ = GuiState::MAIN;
 		BcAssert( SelectedID_ < Program_.size() );
 		Program_[ SelectedID_ ].OperationVar_ = ClickedHotspot.ID_;
+		UpdateRobotProgram = BcTrue;
 		break;
 
 
@@ -631,23 +729,24 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	};
 
 	PlayerRobot_ = spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, BcPI, 0.0f ) );
+	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
 
 	if( PlayerRobot_ != nullptr )
 	{
 		// Test program.
-		Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_energy_greater", 25, "op_set_state", 2 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_always", 2, "op_avoid_attack", 32 ) );
-		Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
-		Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 1, "cond_always", 2, "op_avoid_attack", 32 ) );
-		Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_avoid_attack", 32 ) );
-		Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 1 ) );
-		Program_.push_back( GaRobotOperation( 2, "cond_energy_less", 10, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 1, "op_target_enemy", 24 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 25, "op_set_state", 2 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 24, "op_set_state", 1 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 2, "op_avoid_attack", 32 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_target_start", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 2, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 2, "op_avoid_attack", 32 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_avoid_attack", 32 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_attack_a", 1 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_never", 10, "op_set_state", 0 ) );
 
 		PlayerRobot_->setProgram( Program_ );
+		EnemyRobot_->setProgram( Program_ );
 	}
 
 

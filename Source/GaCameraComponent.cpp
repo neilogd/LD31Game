@@ -116,10 +116,36 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 	Matrix.inverse();
 
 #if 1
+	// HACK: 2 only!
+	auto EntityA = ScnCore::pImpl()->findEntity( BcName( "RobotBase", 0 ) );
+	auto EntityB = ScnCore::pImpl()->findEntity( BcName( "RobotBase", 1 ) );
+	auto EntityAPos = EntityA->getParentEntity()->getLocalPosition();
+	auto EntityBPos = EntityB->getParentEntity()->getLocalPosition();
+	auto EntityCentral = ( EntityAPos + EntityBPos ) * 0.5f;
+
+	MaVec3d VectorAtoB = EntityBPos - EntityAPos;
+	MaVec3d VectorPerp = MaVec3d( VectorAtoB.z(), 0.0f, -VectorAtoB.x() );
+
+	MaVec3d TargetPosition = ( EntityCentral + VectorPerp * 2.0f ) + MaVec3d( 0.0f, 16.0f, 0.0f );
+
+	TargetLookAt_ =
+		( TargetLookAt_ * 0.95f ) +
+		( EntityCentral * 0.05f );
+
+	TargetPosition_ =
+		( TargetPosition_ * 0.95f ) +
+		( TargetPosition * 0.05f );
+
+	Matrix.lookAt( TargetPosition_, TargetLookAt_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
+	Matrix.inverse();
+
+
+#else
+
 	MaAABB AABB;
 	for( BcU32 Idx = 0; ; ++Idx )
 	{
-		auto Entity = ScnCore::pImpl()->findEntity( BcName( "RobotEntity", Idx ) );
+		auto Entity = ScnCore::pImpl()->findEntity( BcName( "RobotBase", Idx ) );
 		if( Entity != nullptr )
 		{
 			auto SpatialComponent = Entity->getComponentByType< ScnModelComponent >();

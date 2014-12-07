@@ -33,6 +33,7 @@ public:
 	enum class HotspotType
 	{
 		// Per op.
+		STATE,
 		CONDITION,
 		CONDITION_VAR,
 		OPERATION,

@@ -145,6 +145,12 @@ public:
 	ScnMaterialComponentRef Material_;
 	ScnViewComponentRef View_;
 	ScnFontComponentRef Font_;
+
+	// Body parts.
+	ScnEntityRef Base_;
+	ScnEntityRef Turret_;
+
+	BcF32 MoveAngle_;
 };
 
 #endif

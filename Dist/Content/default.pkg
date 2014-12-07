@@ -110,11 +110,6 @@
 				{
 					"type"					: "GaRobotComponent",
 					"team"					: 0
-				},
-
-				{
-					"type"					: "ScnModelComponent",
-					"model"					: "$(ScnModel:models.teapot)"
 				}
 			]
 		},
@@ -127,11 +122,6 @@
 				{
 					"type"					: "GaRobotComponent",
 					"team"					: 1
-				},
-
-				{
-					"type"					: "ScnModelComponent",
-					"model"					: "$(ScnModel:models.teapot)"
 				}
 			]
 		},
@@ -160,6 +150,31 @@
 					"velocity"				: 8.0,
 					"damage"				: 32.0,
 					"radius"				: 8.0
+				}
+			]
+		},
+
+		{
+			"name"		:		"RobotBase",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"					: "ScnModelComponent",
+					"model"					: "$(ScnModel:models.robot_base)"
+				}
+			]
+		},
+
+
+		{
+			"name"		:		"RobotTurret",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"type"					: "ScnModelComponent",
+					"model"					: "$(ScnModel:models.robot_turret)"
 				}
 			]
 		}

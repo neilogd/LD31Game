@@ -4,6 +4,18 @@
 			"type"		: "ScnModel",
 			"name"		: "teapot",
 			"source"	: "Content/Source/teapot/wt_teapot.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "robot_base",
+			"source"	: "Content/Source/robot_base.obj"
+		},
+
+		{
+			"type"		: "ScnModel",
+			"name"		: "robot_turret",
+			"source"	: "Content/Source/robot_turret.obj"
 		}
 	]
 }

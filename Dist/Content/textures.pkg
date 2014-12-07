@@ -9,6 +9,20 @@
 		},
 
 		{
+			"type"			: "ScnTexture",
+			"name"			: "robot_base",
+
+			"source"		: "Content/Source/robot_base.png"
+		},
+
+		{
+			"type"			: "ScnTexture",
+			"name"			: "robot_turret",
+
+			"source"		: "Content/Source/robot_turret.png"
+		},
+
+		{
 			"type"			: "ScnTextureAtlas",
 			"name"			: "particles",
 
@@ -27,7 +41,7 @@
 			"source"		: [
 				"Content/Source/white.png",
 				"Content/Source/panel0.png",
-				"Content/Source/panelcolours.png"
+				"Content/Source/panel_state.png"
 			]
 		}
 	]
