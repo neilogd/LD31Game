@@ -104,7 +104,7 @@ void GaWorldComponent::StaticRegisterClass()
 		new ReField( "HotspotType_", &GaWorldComponent::HotspotType_ ),
 	};
 	
-	ReRegisterClass< GaWorldComponent >( Fields )
+	ReRegisterClass< GaWorldComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( 0 ) );
 
 
@@ -116,7 +116,7 @@ void GaWorldComponent::StaticRegisterClass()
 		new ReEnumConstant( "OPERATION_VAR", (BcU32)HotspotType::OPERATION_VAR ),
 		new ReEnumConstant( "ADD_OP", (BcU32)HotspotType::ADD_OP ),
 		new ReEnumConstant( "DEL_OP", (BcU32)HotspotType::DEL_OP ),
-		new ReEnumConstant( "CONDITION_STATE", (BcU32)HotspotType::CONDITION_STATE ),
+		new ReEnumConstant( "STATE_SELECTION", (BcU32)HotspotType::STATE_SELECTION ),
 		new ReEnumConstant( "CONDITION_SELECTION", (BcU32)HotspotType::CONDITION_SELECTION ),
 		new ReEnumConstant( "CONDITION_VAR_SELECTION", (BcU32)HotspotType::CONDITION_VAR_SELECTION ),
 		new ReEnumConstant( "OPERATION_SELECTION", (BcU32)HotspotType::OPERATION_SELECTION ),
@@ -487,9 +487,6 @@ void GaWorldComponent::update( BcF32 Tick )
 // onClick
 void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosition )
 {
-	SelectedID_ = ClickedHotspot.ID_;
-	HotspotType_ = ClickedHotspot.Type_;
-
 	switch( ClickedHotspot.Type_ )
 	{
 	case HotspotType::STATE_MAIN:
@@ -516,27 +513,46 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		SelectionPosition_ = MousePosition;
 		break;
 		
+	case HotspotType::STATE_SELECTION:
+		GuiState_ = GuiState::MAIN;
+		BcAssert( SelectedID_ < Program_.size() );
+		BcAssert( ClickedHotspot.ID_ < 8 );
+		Program_[ SelectedID_ ].State_ = ClickedHotspot.ID_;
+		break;
 
 	case HotspotType::CONDITION_SELECTION:
 		GuiState_ = GuiState::MAIN;
+		BcAssert( SelectedID_ < Program_.size() );
+		BcAssert( ClickedHotspot.ID_ < ConditionEntries_.size() );
+		Program_[ SelectedID_ ].Condition_ = ConditionEntries_[ ClickedHotspot.ID_ ].Name_;
 		break;
 
 	case HotspotType::CONDITION_VAR_SELECTION:
 		GuiState_ = GuiState::MAIN;
+		BcAssert( SelectedID_ < Program_.size() );
+		Program_[ SelectedID_ ].ConditionVar_ = ClickedHotspot.ID_;
 		break;
 
 	case HotspotType::OPERATION_SELECTION:
 		GuiState_ = GuiState::MAIN;
+		BcAssert( SelectedID_ < Program_.size() );		
+		BcAssert( ClickedHotspot.ID_ < OperationEntries_.size() );
+		Program_[ SelectedID_ ].Operation_ = OperationEntries_[ ClickedHotspot.ID_ ].Name_;
 		break;
 
 	case HotspotType::OPERATION_VAR_SELECTION:
 		GuiState_ = GuiState::MAIN;
+		BcAssert( SelectedID_ < Program_.size() );
+		Program_[ SelectedID_ ].OperationVar_ = ClickedHotspot.ID_;
 		break;
 
 
 	default:
 		break;
 	}
+
+	SelectedID_ = ClickedHotspot.ID_;
+	HotspotType_ = ClickedHotspot.Type_;
 }
 
 //////////////////////////////////////////////////////////////////////////
