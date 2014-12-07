@@ -112,6 +112,9 @@ public:
 
 	Hotspot LastHighlightedHotspot_;
 
+	GaRobotComponent* PlayerRobot_;
+	GaRobotComponent* EnemyRobot_;
+
 };
 
 #endif

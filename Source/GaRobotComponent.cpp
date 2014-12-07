@@ -36,9 +36,18 @@
 std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::ProgramFunctionMap_ =
 {
 	/**
+	 * Condition never: Never perform this operation.
+	 */
+	{
+		"cond_never",
+		[]( GaRobotComponent* ThisRobot, BcU32 Distance )->BcU32
+		{
+			return BcFalse;
+		}
+	},
+
+	/**
 	 * Condition always: Always perform this operation.
-	 * @param Distance to check against. ( < Distance )
-	 * @return If we are this near to any enemy.
 	 */
 	{
 		"cond_always",
@@ -364,6 +373,10 @@ void GaRobotComponent::StaticRegisterClass()
 		new ReField( "MoveTimer_", &GaRobotComponent::MoveTimer_ ),
 		new ReField( "Program_", &GaRobotComponent::Program_ ),
 		new ReField( "CurrentState_", &GaRobotComponent::CurrentState_ ),
+		new ReField( "CurrentOp_", &GaRobotComponent::CurrentOp_ ),
+		new ReField( "NextOp_", &GaRobotComponent::NextOp_ ),
+		new ReField( "CurrentOpTimer_", &GaRobotComponent::CurrentOpTimer_ ),
+		new ReField( "CurrentOpTime_", &GaRobotComponent::CurrentOpTime_ )
 	};
 	
 	ReRegisterClass< GaRobotComponent, Super >( Fields )
@@ -411,7 +424,7 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	EnergyChargeRate_ = 5.0f;
 
 	WeaponACoolDown_ = 0.1f;
-	WeaponACost_ = 2.0f;
+	WeaponACost_ = 10.0f;
 	WeaponATimer_ = 0.0f;
 	WeaponBCoolDown_ = 4.0f;
 	WeaponBCost_ = 25.0f;
@@ -419,6 +432,10 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	MoveTimer_ = 0.0f;
 	
 	CurrentState_ = 0;
+	CurrentOp_ = 0;
+	NextOp_ = 0;
+	CurrentOpTimer_ = 0.0f;
+	CurrentOpTime_ = 0.2f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -426,43 +443,61 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 //virtual
 void GaRobotComponent::update( BcF32 Tick )
 {
-	// Handle robot program.
-	BcBool ExecutedCode = BcFalse;
-	for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
+	CurrentOpTimer_ -= Tick;
+	if( CurrentOpTimer_ < 0.0f )
 	{
-		const auto& Op = Program_[ Idx ];
-		if( Op.State_ == CurrentState_ )
+		CurrentOpTimer_ += CurrentOpTime_;
+
+		// Handle robot program.
+		BcBool ExecutedCode = BcFalse;
+		if( Program_.size() > 0 )
 		{
-			auto Condition = ProgramFunctionMap_[ Op.Condition_ ];
-			if( Condition == nullptr )
+			CurrentOp_ = NextOp_;
+			const auto& Op = Program_[ CurrentOp_ ];
+			if( Op.State_ == CurrentState_ )
 			{
-				BcPrintf( "No condition \"%s\"\n", Op.Condition_.c_str() );
-			}
-			else if( Condition( this, Op.ConditionVar_ ) )
-			{
-				auto Operation = ProgramFunctionMap_[ Op.Operation_ ];
-				if( Operation == nullptr )
+				auto Condition = ProgramFunctionMap_[ Op.Condition_ ];
+				if( Condition != nullptr )
 				{
-					BcPrintf( "No operation \"%s\"\n", Op.Operation_.c_str() );
-				}
-				else
-				{
-					auto RetVal = Operation( this, Op.OperationVar_ );
-					if( RetVal != BcErrorCode )
+					if( Condition( this, Op.ConditionVar_ ) )
 					{
-						CurrentState_ = RetVal;
+						auto Operation = ProgramFunctionMap_[ Op.Operation_ ];
+						if( Operation == nullptr )
+						{
+							BcPrintf( "No operation \"%s\"\n", Op.Operation_.c_str() );
+						}
+						else
+						{
+							auto RetVal = Operation( this, Op.OperationVar_ );
+							if( RetVal != BcErrorCode )
+							{
+								CurrentState_ = RetVal;
+							}
+						}
+					}
+				}
+				ExecutedCode = BcTrue;
+			}
+
+			// Advance to next valid op.
+			if( ExecutedCode )
+			{
+				for( BcU32 Idx = 0; Idx < Program_.size(); ++Idx )
+				{
+					NextOp_ = ( NextOp_ + 1 ) % Program_.size();
+					if( Program_[ NextOp_ ].State_ == CurrentState_ )
+					{
 						break;
 					}
 				}
 			}
-			ExecutedCode = BcTrue;
-		}
-	}
 
-	// Did we fail to run code? If so, reset to state 0.
-	if( ExecutedCode == BcFalse )
-	{
-		CurrentState_ = 0;
+			// Did we fail to run code? If so, reset to state 0.
+			if( ExecutedCode == BcFalse )
+			{
+				CurrentState_ = 0;
+			}
+		}
 	}
 
 	// Grab entity + position.
@@ -677,4 +712,5 @@ void GaRobotComponent::setProgram( std::vector< GaRobotOperation > Program )
 {
 	Program_ = Program;
 	CurrentState_ = 0;
+	CurrentOp_ = 0;
 }

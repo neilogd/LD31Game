@@ -37,16 +37,19 @@ public:
 			std::string Name,
 			std::string Shorthand,
 			std::string Doc,
+			BcBool HasVar,
 			std::vector< BcU32 > VarOptions ):
 		Name_( Name ),
 		Shorthand_( Shorthand ),
 		Doc_( Doc ),
+		HasVar_( HasVar ),
 		VarOptions_( VarOptions ) 
 	{}
 
 	std::string Name_;
 	std::string Shorthand_;
 	std::string Doc_;
+	BcBool HasVar_;
 	std::vector< BcU32 > VarOptions_; 
 };
 
@@ -133,6 +136,10 @@ public:
 
 	std::vector< GaRobotOperation > Program_;
 	BcU32 CurrentState_;
+	BcU32 CurrentOp_;
+	BcU32 NextOp_;
+	BcF32 CurrentOpTimer_;
+	BcF32 CurrentOpTime_;
 
 	ScnCanvasComponentRef Canvas_;
 	ScnMaterialComponentRef Material_;

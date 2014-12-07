@@ -32,57 +32,60 @@ namespace
 {
 	static std::vector< GaRobotCommandEntry > ConditionEntries_ = 
 	{
-		GaRobotCommandEntry( "cond_always",			"*",	
-			"Condition: Always do this.", 
+		GaRobotCommandEntry( "cond_never",				"!",
+			"Condition: Never do this.", BcFalse,
+			{ } ),
+		GaRobotCommandEntry( "cond_always",				"*",	
+			"Condition: Always do this.", BcFalse,
 			{ } ),
 		GaRobotCommandEntry( "cond_near_enemy", 		"E<X",	
-			"Condition: Is enemy nearer than (X) units?", 
+			"Condition: Is enemy nearer than (X) units?", BcTrue, 
 			{ 1, 2, 4, 8, 16, 32, 64 } ),
 		GaRobotCommandEntry( "cond_far_enemy",	 		"E>X",		
-			"Condition: Is enemy farther than (X) units?", 
+			"Condition: Is enemy farther than (X) units?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
-		GaRobotCommandEntry( "cond_near_start",	 	"St<X",		
-			"Condition: Is start nearer than (X) units?", 
+		GaRobotCommandEntry( "cond_near_start",	 		"St<X",		
+			"Condition: Is start nearer than (X) units?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
-		GaRobotCommandEntry( "cond_far_start", 		"St>X",		
-			"Condition: Is start farther than (X) units?", 
+		GaRobotCommandEntry( "cond_far_start", 			"St>X",		
+			"Condition: Is start farther than (X) units?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "cond_incoming_attack", 	"At<X",		
-			"Condition: Is an attack incoming within (X) units of us?", 
+			"Condition: Is an attack incoming within (X) units of us?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
-		GaRobotCommandEntry( "cond_health_less",	 	"He<X",		
-			"Condition: Is health lower than (X)%%?", 
+		GaRobotCommandEntry( "cond_health_less",	 	"He<X",
+			"Condition: Is health lower than (X)%%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
-		GaRobotCommandEntry( "cond_health_greater", 	"Hw>X",		
-			"Condition: Is health greater than (X)%%?", 
+		GaRobotCommandEntry( "cond_health_greater", 	"Hw>X",
+			"Condition: Is health greater than (X)%%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80	, 90, 100 } ),
-		GaRobotCommandEntry( "cond_energy_less",	 	"En<X",	
-			"Condition: Is energy lower than (X)%%?", 
+		GaRobotCommandEntry( "cond_energy_less",	 	"En<X",
+			"Condition: Is energy lower than (X)%%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
-		GaRobotCommandEntry( "cond_energy_greater", 	"En>X",		
-			"Condition: Is energy greater than (X)%%?", 
+		GaRobotCommandEntry( "cond_energy_greater", 	"En>X",
+			"Condition: Is energy greater than (X)%%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 	};
 
 	static std::vector< GaRobotCommandEntry > OperationEntries_ = 
 	{
 		GaRobotCommandEntry( "op_set_state", 			"Set",
-			"Operation: Set State.", 
+			"Operation: Set State.", BcTrue,
 			{ 0, 1, 2, 3, 4, 5, 6, 7 } ),
 		GaRobotCommandEntry( "op_target_enemy", 		"M-X",
-			"Operation: Move to within (X) units of enemy.", 
+			"Operation: Move to within (X) units of enemy.", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "op_target_start", 		"M-St",
-			"Operation: Move to within (X) units of start.", 
+			"Operation: Move to within (X) units of start.", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "op_avoid_attack", 		"AvAtX",
-			"Operation: Move to (X) units away from incoming attack.", 
+			"Operation: Move to (X) units away from incoming attack.", BcTrue, 
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "op_attack_a", 			"At-WpA",
-			"Operation: Attack enemy with Weapon A, spread of (X) units.", 
+			"Operation: Attack enemy with Weapon A, spread of (X) units.", BcTrue,
 			{ 0, 1, 2, 4, 8 } ),
 		GaRobotCommandEntry( "op_attack_b", 			"At-WpB",
-			"Operation: Attack enemy with Weapon B, spread of (X) units.", 
+			"Operation: Attack enemy with Weapon B, spread of (X) units.", BcTrue,
 			{ 0, 1, 2, 4, 8 } ),
 	};
 }
@@ -102,6 +105,8 @@ void GaWorldComponent::StaticRegisterClass()
 		new ReField( "SelectionPosition_", &GaWorldComponent::SelectionPosition_ ),
 		new ReField( "SelectedID_", &GaWorldComponent::SelectedID_ ),
 		new ReField( "HotspotType_", &GaWorldComponent::HotspotType_ ),
+		new ReField( "PlayerRobot_", &GaWorldComponent::PlayerRobot_, bcRFF_TRANSIENT ),
+		new ReField( "EnemyRobot_", &GaWorldComponent::EnemyRobot_, bcRFF_TRANSIENT ),
 	};
 	
 	ReRegisterClass< GaWorldComponent, Super >( Fields )
@@ -144,6 +149,9 @@ void GaWorldComponent::initialise( const Json::Value& Object )
 	GuiState_ = GuiState::MAIN;
 	SelectedID_ = BcErrorCode;
 	HotspotType_ = HotspotType::INVALID;
+
+	PlayerRobot_ = nullptr;
+	EnemyRobot_ = nullptr;
 
 	BcMemZero( &MouseMoveEvent_, sizeof( MouseMoveEvent_ ) );
 }
@@ -206,12 +214,27 @@ void GaWorldComponent::update( BcF32 Tick )
 			Canvas_->setMaterialComponent( Material_ );
 			Canvas_->drawSprite( TLCorner, Extents, 2, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
 
+			if( PlayerRobot_ != nullptr )
+			{
+				if( PlayerRobot_->CurrentOp_ == Idx )
+				{
+					Canvas_->drawSpriteCentered( TLCorner + Extents * 0.5f, Extents * 1.1f, 0, RsColour( 1.0f, 1.0f, 1.0f, 1.0f ), 9 );
+				}
+
+				if( PlayerRobot_->CurrentState_ != Program_[ Idx ].State_ )
+				{
+					Canvas_->drawSpriteCentered( TLCorner + Extents * 0.5f, Extents * 1.1f, 0, RsColour( 0.0f, 0.0f, 0.0f, 0.5f ), 11 );
+				}
+			}
 
 			BcF32 FontSize = 32.0f;
 			RsColour Colour = RsColour::WHITE;
 			MaVec2d Button( 128.0f, 64.0f );
 			BcChar Buffer[ 1024 ];
 
+			/**
+			 * CONDITION HOTSPOT.
+			 */
 			Hotspot HSCondition = 
 			{
 				TLCorner * PanelOffset, Button,
@@ -230,54 +253,66 @@ void GaWorldComponent::update( BcF32 Tick )
 				Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, FoundCondIt->Shorthand_, Colour, 12 );
 			}
 
+			Hotspots.push_back( HSCondition );
 
-			TLCorner.x( TLCorner.x() + Button.x() );
-			Hotspot HSConditionVar = 
+
+			if( FoundCondIt->Name_ != "cond_never" )
 			{
-				TLCorner * PanelOffset, Button,
-				Idx,
-				HotspotType::CONDITION_VAR
-			};
-
-			BcSPrintf( Buffer, "%u", Program_[ Idx ].ConditionVar_ );
-			Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, Buffer, Colour, 12 );
-
-			TLCorner.x( TLCorner.x() + Button.x() );
-			Hotspot HSOperation = 
-			{
-				TLCorner * PanelOffset, Button,
-				Idx,
-				HotspotType::OPERATION
-			};
-
-			auto FoundOperationIt = std::find_if( OperationEntries_.begin(), OperationEntries_.end(),
-				[ & ]( const GaRobotCommandEntry& Entry )
+				TLCorner.x( TLCorner.x() + Button.x() );
+				if( FoundCondIt != ConditionEntries_.end() &&
+					FoundCondIt->HasVar_ )
 				{
-					return Entry.Name_ == Program_[ Idx ].Operation_;
-				} );
+					Hotspot HSConditionVar = 
+					{
+						TLCorner * PanelOffset, Button,
+						Idx,
+						HotspotType::CONDITION_VAR
+					};
 
-			if( FoundOperationIt != OperationEntries_.end() )
-			{
-				Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, FoundOperationIt->Shorthand_, Colour, 12 );
+					BcSPrintf( Buffer, "%u", Program_[ Idx ].ConditionVar_ );
+					Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, Buffer, Colour, 12 );
+					Hotspots.push_back( HSConditionVar );
+				}
+
+				TLCorner.x( TLCorner.x() + Button.x() );
+				Hotspot HSOperation = 
+				{
+					TLCorner * PanelOffset, Button,
+					Idx,
+					HotspotType::OPERATION
+				};
+
+				auto FoundOperationIt = std::find_if( OperationEntries_.begin(), OperationEntries_.end(),
+					[ & ]( const GaRobotCommandEntry& Entry )
+					{
+						return Entry.Name_ == Program_[ Idx ].Operation_;
+					} );
+
+				if( FoundOperationIt != OperationEntries_.end() )
+				{
+					Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, FoundOperationIt->Shorthand_, Colour, 12 );
+					Hotspots.push_back( HSOperation );
+				}
+
+				TLCorner.x( TLCorner.x() + Button.x() );
+				if( FoundOperationIt != OperationEntries_.end() &&
+					FoundOperationIt->HasVar_ )
+				{
+					Hotspot HSOperationVar = 
+					{
+						TLCorner * PanelOffset, Button,
+						Idx,
+						HotspotType::OPERATION_VAR
+					};
+
+					BcSPrintf( Buffer, "%u", Program_[ Idx ].OperationVar_ );
+					Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, Buffer, Colour, 12 );
+					Hotspots.push_back( HSOperationVar );
+				}
+
+				TLCorner.x( TLCorner.x() + Button.x() );
 			}
 
-			TLCorner.x( TLCorner.x() + Button.x() );
-			Hotspot HSOperationVar = 
-			{
-				TLCorner * PanelOffset, Button,
-				Idx,
-				HotspotType::OPERATION_VAR
-			};
-
-			BcSPrintf( Buffer, "%u", Program_[ Idx ].OperationVar_ );
-			Font_->drawCentered( Canvas_, TLCorner + Button * 0.5f, FontSize, Buffer, Colour, 12 );
-
-			TLCorner.x( TLCorner.x() + Button.x() );
-
-			Hotspots.push_back( HSCondition );
-			Hotspots.push_back( HSConditionVar );
-			Hotspots.push_back( HSOperation );
-			Hotspots.push_back( HSOperationVar );
 
 			// Foreground.
 			//Canvas_->drawSprite( -Extents + Position, Extents + Position, RsColour( 1.0f, 1.0f, 1.0f, 0.6f ), 10 );
@@ -487,6 +522,8 @@ void GaWorldComponent::update( BcF32 Tick )
 // onClick
 void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosition )
 {
+	BcBool UpdateRobotProgram = BcFalse;
+
 	switch( ClickedHotspot.Type_ )
 	{
 	case HotspotType::STATE_MAIN:
@@ -551,6 +588,11 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		break;
 	}
 
+	if( UpdateRobotProgram )
+	{
+		PlayerRobot_->setProgram( Program_ );
+	}
+
 	SelectedID_ = ClickedHotspot.ID_;
 	HotspotType_ = ClickedHotspot.Type_;
 }
@@ -569,7 +611,7 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 	BcU32 Idx = 0;
 
-	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )
+	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )->GaRobotComponent*
 	{
 		ScnEntitySpawnParams EntityParams = 
 		{
@@ -582,28 +624,31 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 		EntityParams.Transform_.translation( Position );
 		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
 		auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
-		if( RobotComponent != nullptr && ( Idx % 2 ) == 0 )
-		{
-			// Test program.
-			Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
-			Program_.push_back( GaRobotOperation( 0, "cond_energy_greater", 25, "op_set_state", 2 ) );
-			Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
-			Program_.push_back( GaRobotOperation( 0, "cond_always", 2, "op_avoid_attack", 32 ) );
-			Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
-			Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
-			Program_.push_back( GaRobotOperation( 1, "cond_always", 2, "op_avoid_attack", 32 ) );
-			Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_avoid_attack", 32 ) );
-			Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 1 ) );
-			Program_.push_back( GaRobotOperation( 2, "cond_energy_less", 5, "op_set_state", 0 ) );
-
-			RobotComponent->setProgram( Program_ );
-		}
 
 		++Idx;
+
+		return RobotComponent;
 	};
 
-	spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-	spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, BcPI, 0.0f ) );
+	PlayerRobot_ = spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
+	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, BcPI, 0.0f ) );
+
+	if( PlayerRobot_ != nullptr )
+	{
+		// Test program.
+		Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 8, "op_target_enemy", 8 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_energy_greater", 25, "op_set_state", 2 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_far_start", 24, "op_set_state", 1 ) );
+		Program_.push_back( GaRobotOperation( 0, "cond_always", 2, "op_avoid_attack", 32 ) );
+		Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 0 ) );
+		Program_.push_back( GaRobotOperation( 1, "cond_near_start", 2, "op_set_state", 0 ) );
+		Program_.push_back( GaRobotOperation( 1, "cond_always", 2, "op_avoid_attack", 32 ) );
+		Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_avoid_attack", 32 ) );
+		Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_attack_a", 1 ) );
+		Program_.push_back( GaRobotOperation( 2, "cond_energy_less", 10, "op_set_state", 0 ) );
+
+		PlayerRobot_->setProgram( Program_ );
+	}
 
 
 #if 1
