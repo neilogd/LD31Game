@@ -132,8 +132,10 @@ void GaTestSelectionComponent::onAttach( ScnEntityWeakRef Parent )
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >();
 	FontComponent_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 
+#if 0
 	OsEventInputKeyboard::Delegate OnKeyPress = OsEventInputKeyboard::Delegate::bind< GaTestSelectionComponent, &GaTestSelectionComponent::onKeyPress >( this );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyPress );
+#endif
 
 #if !PLATFORM_HTML5
 	if( DsCore::pImpl() )
@@ -157,7 +159,9 @@ void GaTestSelectionComponent::onDetach( ScnEntityWeakRef Parent )
 	}
 #endif
 
+#if 0
 	OsCore::pImpl()->unsubscribeAll(this);
+#endif
 	Super::onDetach( Parent );
 }
 	
