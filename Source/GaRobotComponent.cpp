@@ -247,7 +247,6 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 			if( NearestRobot != nullptr )
 			{
 				auto RobotPosition = NearestRobot->getParentEntity()->getLocalPosition();
-
 				BcF32 RandomDelta = ThisRobot->MoveAngle_;
 				ThisRobot->MoveAngle_ += BcPIDIV4;
 				MaVec3d Offset( BcCos( RandomDelta ), 0.0f, -BcSin( RandomDelta ) );
@@ -319,9 +318,11 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 			}
 			AvoidPosition /= BcF32( Weapons.size() );
 #endif
+			auto Direction = ( LocalPosition - AvoidPosition );
+			auto Perp = MaVec3d( Direction.z(), 0.0f, -Direction.x() );
 			// Move nearest point away.
 			ThisRobot->TargetPosition_ = LocalPosition + 
-				( LocalPosition - AvoidPosition ).normal() * Distance;
+				Perp.normal() * Distance;
 			return BcErrorCode;
 		}
 	},
@@ -348,6 +349,23 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 		[]( GaRobotComponent* ThisRobot, BcU32 Radius )->BcU32
 		{
 			ThisRobot->fireWeaponB( Radius );
+			return BcErrorCode;
+		}
+	},
+
+	/**
+	 * Heal an amount..
+	 * Amount to heal.
+	 */
+	{
+		"op_heal",
+		[]( GaRobotComponent* ThisRobot, BcU32 Amount )->BcU32
+		{
+			if( ThisRobot->Energy_ >= BcF32( Amount ) )
+			{
+				ThisRobot->Health_ += BcF32( Amount );
+				ThisRobot->Energy_ += BcF32( Amount );
+			}
 			return BcErrorCode;
 		}
 	},
@@ -722,7 +740,7 @@ void GaRobotComponent::fireWeaponA( BcF32 Radius )
 // fireWeaponB
 void GaRobotComponent::fireWeaponB( BcF32 Radius )
 {
-	if( WeaponATimer_ < 0.0f && Energy_ > WeaponACost_ )
+	if( WeaponBTimer_ < 0.0f && Energy_ > WeaponBCost_ )
 	{
 		auto Robots = getRobots( 1 - Team_ );
 		if( Robots.size() > 0 )
@@ -755,7 +773,13 @@ void GaRobotComponent::fireWeaponB( BcF32 Radius )
 //////////////////////////////////////////////////////////////////////////
 // takeDamage
 void GaRobotComponent::takeDamage( BcF32 Damage )
-{
+{	
+	// Bias enemy to make it more difficult for the player.
+	if( getName().getID() == 1 )
+	{
+		Damage *= 0.8f;
+	}
+
 	Health_ -= Damage;
 }
 

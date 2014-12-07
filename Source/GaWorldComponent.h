@@ -55,6 +55,10 @@ public:
 		START,
 		RESET,
 
+		SAMPLE1,
+		SAMPLE2,
+		SAMPLE3,
+
 		//
 		INVALID
 	};
@@ -125,6 +129,9 @@ public:
 
 	GaRobotComponent* PlayerRobot_;
 	GaRobotComponent* EnemyRobot_;
+
+	BcBool HandledWin_;
+	std::string GameOverMessage_;
 
 };
 

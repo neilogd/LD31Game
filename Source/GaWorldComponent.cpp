@@ -87,6 +87,9 @@ namespace
 		GaRobotCommandEntry( "op_attack_b", 			"At-WpB",
 			"Operation: Attack enemy with Weapon B, spread of (X) units.", BcTrue,
 			{ 0, 1, 2, 4, 8 } ),
+		GaRobotCommandEntry( "op_heal", 				"Heal",
+			"Operation: Heal a set amount.", BcTrue,
+			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 	};
 }
 
@@ -107,6 +110,8 @@ void GaWorldComponent::StaticRegisterClass()
 		new ReField( "HotspotType_", &GaWorldComponent::HotspotType_ ),
 		new ReField( "PlayerRobot_", &GaWorldComponent::PlayerRobot_, bcRFF_TRANSIENT ),
 		new ReField( "EnemyRobot_", &GaWorldComponent::EnemyRobot_, bcRFF_TRANSIENT ),
+		new ReField( "HandledWin_", &GaWorldComponent::HandledWin_ ),
+		new ReField( "GameOverMessage_", &GaWorldComponent::GameOverMessage_ ),
 	};
 	
 	ReRegisterClass< GaWorldComponent, Super >( Fields )
@@ -153,6 +158,9 @@ void GaWorldComponent::initialise( const Json::Value& Object )
 	PlayerRobot_ = nullptr;
 	EnemyRobot_ = nullptr;
 
+	HandledWin_ = BcFalse;
+	GameOverMessage_ = "";
+
 	BcMemZero( &MouseMoveEvent_, sizeof( MouseMoveEvent_ ) );
 }
 
@@ -170,6 +178,28 @@ void GaWorldComponent::update( BcF32 Tick )
 		1.0f,
 		10.0f,
 		0 );
+
+	BcU32 Winner = BcErrorCode;
+
+	// End game?
+	if( HandledWin_ == BcFalse && isGamePlaying() == BcFalse && 
+		PlayerRobot_ != nullptr && EnemyRobot_ != nullptr )
+	{
+		HandledWin_ = BcTrue;
+
+		if( EnemyRobot_->Health_ <= 0.0f )
+		{
+			CurrentEnemyAI_ = Program_;
+			GameOverMessage_ = "You win! Why not make some changes, then try again?";
+		}
+		if( PlayerRobot_->Health_ <= 0.0f )
+		{
+			GameOverMessage_ = "You lose! Please fix your program and try again!";
+		}
+
+		PlayerRobot_->setProgram( decltype( Program_ )() );
+		EnemyRobot_->setProgram( decltype( Program_ )() );
+	}
 
 	Font_->setAlphaTestStepping( MaVec2d( 0.45f, 0.46f ) );
 
@@ -212,6 +242,14 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	Canvas_->drawSpriteCentered( StartButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
 	Canvas_->drawSpriteCentered( ResetButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+
+	if( GameOverMessage_.size() > 0 )
+	{
+		Font_->drawCentered( 
+			Canvas_, 
+			MaVec2d( 0.0f, 0.0f ), 
+			FontSize * 1.5f, GameOverMessage_, RsColour::WHITE, 12 );
+	}
 
 	/**
 	 * START HOTSPOT
@@ -691,6 +729,10 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 			BcAssert( SelectedID_ < Program_.size() );
 			BcAssert( ClickedHotspot.ID_ < ConditionEntries_.size() );
 			Program_[ SelectedID_ ].Condition_ = ConditionEntries_[ ClickedHotspot.ID_ ].Name_;
+			if( ConditionEntries_[ ClickedHotspot.ID_ ].VarOptions_.size() > 0 )
+			{
+				Program_[ SelectedID_ ].ConditionVar_ = ConditionEntries_[ ClickedHotspot.ID_ ].VarOptions_[ 0 ];
+			}
 			break;
 
 		case HotspotType::CONDITION_VAR_SELECTION:
@@ -704,6 +746,10 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 			BcAssert( SelectedID_ < Program_.size() );		
 			BcAssert( ClickedHotspot.ID_ < OperationEntries_.size() );
 			Program_[ SelectedID_ ].Operation_ = OperationEntries_[ ClickedHotspot.ID_ ].Name_;
+			if( OperationEntries_[ ClickedHotspot.ID_ ].VarOptions_.size() > 0 )
+			{
+				Program_[ SelectedID_ ].OperationVar_ = OperationEntries_[ ClickedHotspot.ID_ ].VarOptions_[ 0 ];
+			}
 			break;
 
 		case HotspotType::OPERATION_VAR_SELECTION:
@@ -868,7 +914,7 @@ void GaWorldComponent::startNewGame()
 	reset();
 
 	BcU32 Idx = 0;
-	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )->GaRobotComponent*
+	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Scale )->GaRobotComponent*
 	{
 		ScnEntitySpawnParams EntityParams = 
 		{
@@ -877,7 +923,7 @@ void GaWorldComponent::startNewGame()
 			getParentEntity()
 		};
 
-		EntityParams.Transform_.rotation( Rotation );
+		EntityParams.Transform_.scale( Scale );
 		EntityParams.Transform_.translation( Position );
 		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
 		auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
@@ -887,15 +933,15 @@ void GaWorldComponent::startNewGame()
 		return RobotComponent;
 	};
 
-	PlayerRobot_ = spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
+	PlayerRobot_ = spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 1.0f, 1.0f, 1.0f ) );
+	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 1.25f, 1.25f, 1.25f ) );
 
 	// 
 	PlayerRobot_->setProgram( Program_ );
+	EnemyRobot_->setProgram( CurrentEnemyAI_ );
 
-	auto EnemyProgram = Program_;
-	std::reverse( EnemyProgram.begin(), EnemyProgram.end() );
-	EnemyRobot_->setProgram( EnemyProgram );
+	HandledWin_ = BcFalse;
+	GameOverMessage_ = "";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -915,6 +961,8 @@ void GaWorldComponent::reset()
 	while( Entity != nullptr );
 	PlayerRobot_ = nullptr;
 	EnemyRobot_ = nullptr;
+	HandledWin_ = BcFalse;
+	GameOverMessage_ = "";
 }
 
 //////////////////////////////////////////////////////////////////////////
