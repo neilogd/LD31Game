@@ -27,12 +27,14 @@ void GaCameraComponent::StaticRegisterClass()
 {	
 	ReField* Fields[] = 
 	{
-		new ReField( "CameraTarget_",		&GaCameraComponent::CameraTarget_ ),
-		new ReField( "CameraRotation_",		&GaCameraComponent::CameraRotation_ ),
-		new ReField( "CameraDistance_",		&GaCameraComponent::CameraDistance_ ),
-		new ReField( "CameraZoom_",			&GaCameraComponent::CameraZoom_ ),
-		new ReField( "CameraState_",		&GaCameraComponent::CameraState_ ),
-		new ReField( "NextCameraState_",	&GaCameraComponent::NextCameraState_ ),
+		new ReField( "CameraTarget_", &GaCameraComponent::CameraTarget_ ),
+		new ReField( "CameraRotation_", &GaCameraComponent::CameraRotation_ ),
+		new ReField( "CameraDistance_", &GaCameraComponent::CameraDistance_ ),
+		new ReField( "CameraZoom_", &GaCameraComponent::CameraZoom_ ),
+		new ReField( "CameraState_", &GaCameraComponent::CameraState_ ),
+		new ReField( "NextCameraState_", &GaCameraComponent::NextCameraState_ ),
+		new ReField( "TargetPosition_", &GaCameraComponent::TargetPosition_ ),
+		new ReField( "TargetLookAt_", &GaCameraComponent::TargetLookAt_ ),
 	};
 
 	ReRegisterClass< GaCameraComponent, Super >( Fields )
@@ -120,28 +122,31 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 	auto EntityA = ScnCore::pImpl()->findEntity( BcName( "RobotBase", 0 ) );
 	auto EntityB = ScnCore::pImpl()->findEntity( BcName( "RobotBase", 1 ) );
 
+	MaVec3d TargetPosition( 0.0f, 16.0f, -32.0f );
+	MaVec3d EntityCentral( 0.0f, 0.0f, 0.0f );
+
 	if( EntityA != nullptr && EntityB != nullptr )
 	{
 		auto EntityAPos = EntityA->getParentEntity()->getLocalPosition();
 		auto EntityBPos = EntityB->getParentEntity()->getLocalPosition();
-		auto EntityCentral = ( EntityAPos + EntityBPos ) * 0.5f;
+		EntityCentral = ( EntityAPos + EntityBPos ) * 0.5f;
 
 		MaVec3d VectorAtoB = EntityBPos - EntityAPos;
 		MaVec3d VectorPerp = MaVec3d( VectorAtoB.z(), 0.0f, -VectorAtoB.x() );
 
-		MaVec3d TargetPosition = ( EntityCentral + VectorPerp * 2.0f ) + MaVec3d( 0.0f, 16.0f, 0.0f );
-
-		TargetLookAt_ =
-			( TargetLookAt_ * 0.95f ) +
-			( EntityCentral * 0.05f );
-
-		TargetPosition_ =
-			( TargetPosition_ * 0.95f ) +
-			( TargetPosition * 0.05f );
-
-		Matrix.lookAt( TargetPosition_, TargetLookAt_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
-		Matrix.inverse();
+		TargetPosition = ( EntityCentral + VectorPerp * 2.0f ) + MaVec3d( 0.0f, 16.0f, 0.0f );
 	}
+
+	TargetLookAt_ =
+		( TargetLookAt_ * 0.95f ) +
+		( EntityCentral * 0.05f );
+
+	TargetPosition_ =
+		( TargetPosition_ * 0.95f ) +
+		( TargetPosition * 0.05f );
+
+	Matrix.lookAt( TargetPosition_, TargetLookAt_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
+	Matrix.inverse();
 
 #else
 

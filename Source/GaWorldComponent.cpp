@@ -33,62 +33,62 @@ namespace
 	static std::vector< GaRobotCommandEntry > ConditionEntries_ = 
 	{
 		GaRobotCommandEntry( "cond_never",				"!",
-			"Condition: Never do this.", BcFalse,
+			": Never do this.", BcFalse,
 			{ } ),
 		GaRobotCommandEntry( "cond_always",				"*",	
-			"Condition: Always do this.", BcFalse,
+			": Always do this.", BcFalse,
 			{ } ),
 		GaRobotCommandEntry( "cond_near_enemy", 		"E<X",	
-			"Condition: Is enemy nearer than (X) units?", BcTrue, 
+			": Is enemy nearer than (X) units?", BcTrue, 
 			{ 1, 2, 4, 8, 16, 32, 64 } ),
 		GaRobotCommandEntry( "cond_far_enemy",	 		"E>X",		
-			"Condition: Is enemy farther than (X) units?", BcTrue,
+			": Is enemy farther than (X) units?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "cond_near_start",	 		"St<X",		
-			"Condition: Is start nearer than (X) units?", BcTrue,
+			": Is start nearer than (X) units?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "cond_far_start", 			"St>X",		
-			"Condition: Is start farther than (X) units?", BcTrue,
+			": Is start farther than (X) units?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "cond_incoming_attack", 	"At<X",		
-			"Condition: Is an attack incoming within (X) units of us?", BcTrue,
+			": Is an attack incoming within (X) units of us?", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "cond_health_less",	 	"He<X",
-			"Condition: Is health lower than (X)%?", BcTrue,
+			": Is health lower than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 		GaRobotCommandEntry( "cond_health_greater", 	"Hw>X",
-			"Condition: Is health greater than (X)%?", BcTrue,
+			": Is health greater than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80	, 90, 100 } ),
 		GaRobotCommandEntry( "cond_energy_less",	 	"En<X",
-			"Condition: Is energy lower than (X)%?", BcTrue,
+			": Is energy lower than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 		GaRobotCommandEntry( "cond_energy_greater", 	"En>X",
-			"Condition: Is energy greater than (X)%?", BcTrue,
+			": Is energy greater than (X)%?", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 	};
 
 	static std::vector< GaRobotCommandEntry > OperationEntries_ = 
 	{
 		GaRobotCommandEntry( "op_set_state", 			"Set",
-			"Operation: Set State.", BcTrue,
+			": Set State.", BcTrue,
 			{ 0, 1, 2, 3, 4, 5, 6, 7 } ),
 		GaRobotCommandEntry( "op_target_enemy", 		"M-X",
-			"Operation: Move to within (X) units of enemy.", BcTrue,
+			": Move to within (X) units of enemy.", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "op_target_start", 		"M-St",
-			"Operation: Move to within (X) units of start.", BcTrue,
+			": Move to within (X) units of start.", BcTrue,
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "op_avoid_attack", 		"AvAtX",
-			"Operation: Move to (X) units away from incoming attack.", BcTrue, 
+			": Move to (X) units away from incoming attack.", BcTrue, 
 			{ 1, 2, 4, 8, 12, 16, 24, 32 } ),
 		GaRobotCommandEntry( "op_attack_a", 			"At-WpA",
-			"Operation: Attack enemy with Weapon A, spread of (X) units.", BcTrue,
+			": Attack enemy with Weapon A, spread of (X) units.", BcTrue,
 			{ 0, 1, 2, 4, 8 } ),
 		GaRobotCommandEntry( "op_attack_b", 			"At-WpB",
-			"Operation: Attack enemy with Weapon B, spread of (X) units.", BcTrue,
+			": Attack enemy with Weapon B, spread of (X) units.", BcTrue,
 			{ 0, 1, 2, 4, 8 } ),
 		GaRobotCommandEntry( "op_heal", 				"Heal",
-			"Operation: Heal a set amount.", BcTrue,
+			": Heal a set amount.", BcTrue,
 			{ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 } ),
 	};
 }
@@ -112,6 +112,10 @@ void GaWorldComponent::StaticRegisterClass()
 		new ReField( "EnemyRobot_", &GaWorldComponent::EnemyRobot_, bcRFF_TRANSIENT ),
 		new ReField( "HandledWin_", &GaWorldComponent::HandledWin_ ),
 		new ReField( "GameOverMessage_", &GaWorldComponent::GameOverMessage_ ),
+		new ReField( "PanelPosition_", &GaWorldComponent::PanelPosition_ ),
+		new ReField( "TargetPanelPosition_", &GaWorldComponent::TargetPanelPosition_ ),
+		new ReField( "Wins_", &GaWorldComponent::Wins_ ),
+		new ReField( "Loses_", &GaWorldComponent::Loses_ ),
 	};
 	
 	ReRegisterClass< GaWorldComponent, Super >( Fields )
@@ -161,6 +165,11 @@ void GaWorldComponent::initialise( const Json::Value& Object )
 	HandledWin_ = BcFalse;
 	GameOverMessage_ = "";
 
+	PanelPosition_ = TargetPanelPosition_ = ( MaVec3d( 64.0f * 4.0f, -720.0f + 256.0f, 0.0f ) );
+
+	Wins_ = 0;
+	Loses_ = 0;
+
 	BcMemZero( &MouseMoveEvent_, sizeof( MouseMoveEvent_ ) );
 }
 
@@ -191,10 +200,12 @@ void GaWorldComponent::update( BcF32 Tick )
 		{
 			CurrentEnemyAI_ = Program_;
 			GameOverMessage_ = "You win! Why not make some changes, then try again?";
+			++Wins_;
 		}
 		if( PlayerRobot_->Health_ <= 0.0f )
 		{
 			GameOverMessage_ = "You lose! Please fix your program and try again!";
+			++Loses_;
 		}
 
 		PlayerRobot_->setProgram( decltype( Program_ )() );
@@ -231,7 +242,7 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	MaMat4d PanelOffset;
 	MaVec2d StateIcon( 64.0f, 64.0f );
-	MaVec2d MainButtonSize( 256.0f, 128.0f );
+	MaVec2d MainButtonSize( 320.0f, 128.0f );
 	BcF32 FontSize = 32.0f;
 	RsColour Colour = RsColour::BLACK;
 	MaVec2d Button( 128.0f, 64.0f );
@@ -239,9 +250,21 @@ void GaWorldComponent::update( BcF32 Tick )
 
 	MaVec2d StartButtonPosition( -MainButtonSize.x(), -Height + 64.0f );
 	MaVec2d ResetButtonPosition( MainButtonSize.x(), -Height + 64.0f );
+	MaVec2d Sample1ButtonPosition( -MainButtonSize.x(), Height - 64.0f );
+	MaVec2d Sample2ButtonPosition( MainButtonSize.x(), Height - 64.0f );
 
 	Canvas_->drawSpriteCentered( StartButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
-	Canvas_->drawSpriteCentered( ResetButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+
+	if( isGamePlaying() == BcTrue )
+	{
+		Canvas_->drawSpriteCentered( ResetButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+	}
+
+	if( isGamePlaying() == BcFalse )
+	{
+		Canvas_->drawSpriteCentered( Sample1ButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+		Canvas_->drawSpriteCentered( Sample2ButtonPosition, MainButtonSize, 2, RsColour::GRAY, 10 );
+	}
 
 	if( GameOverMessage_.size() > 0 )
 	{
@@ -250,6 +273,17 @@ void GaWorldComponent::update( BcF32 Tick )
 			MaVec2d( 0.0f, 0.0f ), 
 			FontSize * 1.5f, GameOverMessage_, RsColour::WHITE, 12 );
 	}
+
+	Font_->drawCentered( 
+		Canvas_, 
+		MaVec2d( 0.0f, Height - 256.0f ), 
+		FontSize * 2.0f, "Automabot Battler - By NeiloGD for Ludum Dare 31!", RsColour::WHITE, 12 );
+
+	BcSPrintf( Buffer, "Wins: %u -- %u :Loses", Wins_, Loses_ );
+	Font_->drawCentered( 
+		Canvas_, 
+		MaVec2d( 0.0f, Height - 192.0f ), 
+		FontSize * 2.0f, Buffer, RsColour::WHITE, 12 );
 
 	/**
 	 * START HOTSPOT
@@ -260,27 +294,63 @@ void GaWorldComponent::update( BcF32 Tick )
 		BcErrorCode,
 		HotspotType::START
 	};
-
 	Font_->drawCentered( Canvas_, StartButtonPosition, FontSize * 1.5f, "START", RsColour::WHITE, 12 );
-
 	Hotspots.push_back( HSStart );
 
-	/**
-	 * RESET HOTSPOT
-	 */
-	Hotspot HSSReset = 
+	if( isGamePlaying() == BcTrue )
 	{
-		ResetButtonPosition - MainButtonSize * 0.5f, MainButtonSize,
-		BcErrorCode,
-		HotspotType::RESET
-	};
+		/**
+		 * RESET HOTSPOT
+		 */
+		Hotspot HSSReset = 
+		{
+			ResetButtonPosition - MainButtonSize * 0.5f, MainButtonSize,
+			BcErrorCode,
+			HotspotType::RESET
+		};
+		Font_->drawCentered( Canvas_, ResetButtonPosition, FontSize * 1.5f, "RESET", RsColour::WHITE, 12 );
+		Hotspots.push_back( HSSReset );
+	}
 
-	Font_->drawCentered( Canvas_, ResetButtonPosition, FontSize * 1.5f, "RESET", RsColour::WHITE, 12 );
+#if 1
+	if( isGamePlaying() == BcFalse )
+	{
+		/**
+		 * Sample1 HOTSPOT
+		 */
+		Hotspot HSSample1 = 
+		{
+			Sample1ButtonPosition - MainButtonSize * 0.5f, MainButtonSize,
+			BcErrorCode,
+			HotspotType::SAMPLE1
+		};
+		Font_->drawCentered( Canvas_, Sample1ButtonPosition, FontSize * 1.5f, "SAMPLE 1", RsColour::WHITE, 12 );
+		Hotspots.push_back( HSSample1 );
 
-	Hotspots.push_back( HSSReset );
+		/**
+		 * Sample2 HOTSPOT
+		 */
+		Hotspot HSSample2 = 
+		{
+			Sample2ButtonPosition - MainButtonSize * 0.5f, MainButtonSize,
+			BcErrorCode,
+			HotspotType::SAMPLE2
+		};
+		Font_->drawCentered( Canvas_, Sample2ButtonPosition, FontSize * 1.5f, "SAMPLE 2", RsColour::WHITE, 12 );
+		Hotspots.push_back( HSSample2 );
+	}
+#endif 
+	if( isGamePlaying() == BcTrue )
+	{
+		TargetPanelPosition_ = ( MaVec3d( -( Width - Extents.x() ) * 0.8f, -Height + 256.0f, 0.0f ) );
+	}
+	else
+	{
+		TargetPanelPosition_ = ( MaVec3d( 64.0f * 4.0f, -Height + 256.0f, 0.0f ) );
+	}
 
-
-	PanelOffset.translation( MaVec3d( -( Width - Extents.x() ) * 0.8f, -Height * 0.8f, 0.0f ) );
+	PanelPosition_ = PanelPosition_ * 0.9f + TargetPanelPosition_ * 0.1f;
+	PanelOffset.translation( PanelPosition_ );
 	Canvas_->pushMatrix( PanelOffset );
 
 	// Draw background.	
@@ -493,18 +563,19 @@ void GaWorldComponent::update( BcF32 Tick )
 				BcF32 FontSize = Extents.y() * 0.5f;
 
 				BcChar Buffer[ 1024 ];
-				BcSPrintf( Buffer, "%u", Idx );
+				BcSPrintf( Buffer, "  %u  ", Idx );
 				auto Size = Font_->draw( Canvas_, Position, FontSize, Buffer, Colour, BcFalse, 21 );
-				Position.y( Position.y() + FontSize );
+				Position.y( Position.y() + FontSize * 1.2f );
 
 				TotalSize.x( std::max( Size.x(), TotalSize.x() ) );
-				TotalSize.y( TotalSize.y() + FontSize );
+				TotalSize.y( TotalSize.y() + FontSize * 1.2f );
 
 				HSSelection.Extents_ = Size;
 
 				Hotspots.push_back( HSSelection );
 			}
 
+			TotalSize += MaVec2d( 8.0f, 8.0f );
 			Canvas_->setMaterialComponent( Material_ );
 			Canvas_->drawSprite( MaVec2d( 0.0f, 0.0f ), TotalSize, 0, RsColour( 1.0f, 1.0f, 1.0f, 0.8f ), 20 );
 		}
@@ -536,23 +607,24 @@ void GaWorldComponent::update( BcF32 Tick )
 				if( HSSelection.ID_ == LastHighlightedHotspot_.ID_ &&
 					HSSelection.Type_ == LastHighlightedHotspot_.Type_ )
 				{
-					Colour = RsColour::GREEN;
+					Colour = RsColour( 0.0f, 0.5f, 0.0f, 1.0f );
 				}
 
 				BcF32 FontSize = Extents.y() * 0.5f;
 
 				const auto& Entry = CommandEntries[ Idx ];
-				auto Size = Font_->draw( Canvas_, Position, FontSize, Entry.Doc_, Colour, BcFalse, 21 );
-				Position.y( Position.y() + FontSize );
+				auto Size = Font_->draw( Canvas_, Position, FontSize, std::string( "  " ) + Entry.Shorthand_ + Entry.Doc_, Colour, BcFalse, 21 );
+				Position.y( Position.y() + FontSize * 1.2f );
 
 				TotalSize.x( std::max( Size.x(), TotalSize.x() ) );
-				TotalSize.y( TotalSize.y() + FontSize );
+				TotalSize.y( TotalSize.y() + FontSize * 1.2f);
 
 				HSSelection.Extents_ = Size;
 
 				Hotspots.push_back( HSSelection );
 			}
 
+			TotalSize += MaVec2d( 8.0f, 8.0f );
 			Canvas_->setMaterialComponent( Material_ );
 			Canvas_->drawSprite( MaVec2d( 0.0f, 0.0f ), TotalSize, 0, RsColour( 1.0f, 1.0f, 1.0f, 0.8f ), 20 );
 		}
@@ -609,25 +681,26 @@ void GaWorldComponent::update( BcF32 Tick )
 				if( HSSelection.ID_ == LastHighlightedHotspot_.ID_ &&
 					HSSelection.Type_ == LastHighlightedHotspot_.Type_ )
 				{
-					Colour = RsColour::GREEN;
+					Colour = RsColour( 0.0f, 0.5f, 0.0f, 1.0f );
 				}
 
 				BcF32 FontSize = Extents.y() * 0.5f;
 
 				BcChar Buffer[ 1024 ];
-				BcSPrintf( Buffer, "%u", HSSelection.ID_ );
+				BcSPrintf( Buffer, "  %u  ", HSSelection.ID_ );
 				auto Size = Font_->draw( Canvas_, Position, FontSize, Buffer, Colour, BcFalse, 21 );
 
-				Position.y( Position.y() + FontSize );
+				Position.y( Position.y() + FontSize * 1.2f );
 
 				TotalSize.x( std::max( Size.x(), TotalSize.x() ) );
-				TotalSize.y( TotalSize.y() + FontSize );
+				TotalSize.y( TotalSize.y() + FontSize * 1.2f );
 
 				HSSelection.Extents_ = Size;
 
 				Hotspots.push_back( HSSelection );
 			}
 
+			TotalSize += MaVec2d( 8.0f, 8.0f );
 			Canvas_->setMaterialComponent( Material_ );
 			Canvas_->drawSprite( MaVec2d( 0.0f, 0.0f ), TotalSize, 0, RsColour( 1.0f, 1.0f, 1.0f, 0.8f ), 20 );
 
@@ -770,6 +843,42 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 			}
 			break;
 
+		case HotspotType::SAMPLE1:
+			{
+				Program_.clear();
+				Program_.push_back( GaRobotOperation( 0, "cond_incoming_attack", 8, "op_avoid_attack", 16 ) );
+				Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 12, "op_target_enemy", 8 ) );
+				Program_.push_back( GaRobotOperation( 0, "cond_near_enemy", 16, "op_attack_a", 0 ) );
+				Program_.push_back( GaRobotOperation( 0, "cond_health_less", 100, "op_heal", 10 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+			}
+			break;
+
+		case HotspotType::SAMPLE2:
+			{
+				Program_.clear();
+				Program_.push_back( GaRobotOperation( 0, "cond_far_enemy", 16, "op_target_enemy", 12 ) );
+				Program_.push_back( GaRobotOperation( 0, "cond_health_less", 50, "op_set_state", 1 ) );
+				Program_.push_back( GaRobotOperation( 0, "cond_near_enemy", 24, "op_attack_a", 0 ) );
+				Program_.push_back( GaRobotOperation( 0, "cond_energy_less", 50, "op_set_state", 1 ) );
+				Program_.push_back( GaRobotOperation( 1, "cond_always", 0, "op_target_start", 16 ) );
+				Program_.push_back( GaRobotOperation( 1, "cond_incoming_attack", 8, "op_avoid_attack", 16 ) );
+				Program_.push_back( GaRobotOperation( 1, "cond_near_start", 24, "op_set_state", 2 ) );
+				Program_.push_back( GaRobotOperation( 2, "cond_always", 0, "op_heal", 10 ) );
+				Program_.push_back( GaRobotOperation( 2, "cond_health_greater", 90, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 2, "cond_incoming_attack", 8, "op_avoid_attack", 16 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+				Program_.push_back( GaRobotOperation( 7, "cond_never", 0, "op_set_state", 0 ) );
+			}
+			break;
+
 		default:
 			break;
 		}
@@ -807,10 +916,7 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	EnemyRobot_ = nullptr;
 
 	// Test program.
-	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.clear();
 	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
 	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
 	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );

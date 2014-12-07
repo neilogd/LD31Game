@@ -57,7 +57,6 @@ public:
 
 		SAMPLE1,
 		SAMPLE2,
-		SAMPLE3,
 
 		//
 		INVALID
@@ -133,6 +132,11 @@ public:
 	BcBool HandledWin_;
 	std::string GameOverMessage_;
 
+	MaVec3d PanelPosition_;
+	MaVec3d TargetPanelPosition_;
+
+	BcU32 Wins_;
+	BcU32 Loses_;
 };
 
 #endif

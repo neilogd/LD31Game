@@ -18,6 +18,7 @@
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnDebugRenderComponent.h"
+#include "System/Scene/Sound/ScnSoundEmitter.h"
 
 #include "System/Content/CsPackage.h"
 #include "System/Content/CsCore.h"
@@ -363,6 +364,10 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 		{
 			if( ThisRobot->Energy_ >= BcF32( Amount ) )
 			{
+				if( ThisRobot->Health_ < 100.0f )
+				{
+					ThisRobot->playSound( "heal" );
+				}
 				ThisRobot->Health_ += BcF32( Amount );
 				ThisRobot->Energy_ += BcF32( Amount );
 			}
@@ -732,7 +737,13 @@ void GaRobotComponent::fireWeaponA( BcF32 Radius )
 				BcRandom::Global.randRealRange( -1.0f, 1.0f ),
 				0.0f,
 				BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * Radius;
+		
+			playSound( "weapona" );
 		}
+	}
+	else
+	{
+		playSound( "fail" );
 	}
 }
 
@@ -766,7 +777,13 @@ void GaRobotComponent::fireWeaponB( BcF32 Radius )
 				BcRandom::Global.randRealRange( -1.0f, 1.0f ),
 				0.0f,
 				BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * Radius;
+
+			playSound( "weaponb" );
 		}
+	}
+	else
+	{
+		playSound( "fail" );
 	}
 }
 	
@@ -778,6 +795,11 @@ void GaRobotComponent::takeDamage( BcF32 Damage )
 	if( getName().getID() == 1 )
 	{
 		Damage *= 0.8f;
+	}
+
+	if( Damage > 0.0f )
+	{
+		playSound( "explode" );
 	}
 
 	Health_ -= Damage;
@@ -811,5 +833,20 @@ void GaRobotComponent::setProgram( std::vector< GaRobotOperation > Program )
 	if( Program_.size() > 0 )
 	{
 		CurrentState_ = Program_[ 0 ].State_;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// playSound
+void GaRobotComponent::playSound( const std::string& Name )
+{
+	ScnSoundRef Sound;
+	if( CsCore::pImpl()->requestResource( "default", Name, Sound ) )
+	{
+		auto Emitter = getParentEntity()->getComponentByType< ScnSoundEmitterComponent >();
+		if( Emitter != nullptr )
+		{
+			Emitter->play( Sound );
+		}
 	}
 }

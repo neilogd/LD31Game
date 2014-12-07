@@ -105,6 +105,8 @@ public:
 
 	void setProgram( std::vector< GaRobotOperation > Program );
 
+	void playSound( const std::string& Name );
+
 public:
 	BcU32 Team_;
 

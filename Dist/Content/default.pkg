@@ -97,6 +97,10 @@
 					"min"					: 16.0,
 					"mid"					: 2048.0,
 					"max"					: 1000000.0
+				},
+
+				{
+					"type"					: "ScnSoundListenerComponent"
 				}
 			]
 
@@ -110,6 +114,10 @@
 				{
 					"type"					: "GaRobotComponent",
 					"team"					: 0
+				},
+
+				{
+					"type"					: "ScnSoundEmitterComponent"
 				}
 			]
 		},
@@ -122,6 +130,10 @@
 				{
 					"type"					: "GaRobotComponent",
 					"team"					: 1
+				},
+
+				{
+					"type"					: "ScnSoundEmitterComponent"
 				}
 			]
 		},
@@ -177,6 +189,37 @@
 					"model"					: "$(ScnModel:models.robot_turret)"
 				}
 			]
+		},
+
+
+		{
+			"name"		:		"weapona",
+			"type"		:		"ScnSound",
+			"source"	:		"Content/Source/weapona.sfs"
+		},
+
+		{
+			"name"		:		"weaponb",
+			"type"		:		"ScnSound",
+			"source"	:		"Content/Source/weaponb.sfs"
+		},
+
+		{
+			"name"		:		"explode",
+			"type"		:		"ScnSound",
+			"source"	:		"Content/Source/explode.sfs"
+		},
+
+		{
+			"name"		:		"fail",
+			"type"		:		"ScnSound",
+			"source"	:		"Content/Source/fail.sfs"
+		},
+
+		{
+			"name"		:		"heal",
+			"type"		:		"ScnSound",
+			"source"	:		"Content/Source/heal.sfs"
 		}
 	]
 }
