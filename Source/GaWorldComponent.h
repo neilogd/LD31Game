@@ -30,14 +30,60 @@ class GaWorldComponent:
 	public ScnComponent
 {
 public:
+	enum class HotspotType
+	{
+		// Per op.
+		CONDITION,
+		CONDITION_VAR,
+		OPERATION,
+		OPERATION_VAR,
+		ADD_OP,
+		DEL_OP,
+
+		// Selection.
+		CONDITION_STATE,
+		CONDITION_SELECTION,
+		CONDITION_VAR_SELECTION,
+		OPERATION_SELECTION,
+		OPERATION_VAR_SELECTION,
+
+		//
+		STATE_MAIN,
+
+		//
+		INVALID
+	};
+
+	enum class GuiState
+	{
+		MAIN,
+		SELECTION_STATE,
+		SELECTION,
+		SELECTION_VAR,
+	};
+
+
+	struct Hotspot
+	{
+		MaVec2d Position_;
+		MaVec2d Extents_;
+		BcU32 ID_;
+		HotspotType Type_;
+	};
+
+public:
 	DECLARE_RESOURCE( GaWorldComponent, ScnComponent );
 
 	void initialise( const Json::Value& Object );
 
 	virtual void update( BcF32 Tick );
+
+	void onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosition );
 	
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
+
+
 	
 	eEvtReturn onMouseDown( EvtID ID, const OsEventInputMouse& Event );
 	eEvtReturn onMouseMove( EvtID ID, const OsEventInputMouse& Event );
@@ -53,27 +99,19 @@ public:
 	ScnViewComponentRef View_;
 	ScnFontComponentRef Font_;
 
-	OsEventInputMouse MouseMoveEvent_;
 	std::vector< OsEventInputMouse > MouseEvents_;
+	OsEventInputMouse MouseMoveEvent_;
 
-	enum class HotspotType
-	{
-		// Per op.
-		CONDITION,
-		CONDITION_VAR,
-		OPERATION,
-		OPERATION_VAR,
-		ADD_OP,
-		DEL_OP,
-	};
+	// Main/all gui stuff.
+	GuiState GuiState_;
+	MaVec2d SelectionPosition_;
 
-	struct Hotspot
-	{
-		MaVec2d TL_;
-		MaVec2d BR_;
-		BcU32 ID_;
-		HotspotType Type_;
-	};
+	// For the selection states.
+	BcU32 SelectedID_;
+	HotspotType HotspotType_;
+
+	Hotspot LastHighlightedHotspot_;
+
 };
 
 #endif

@@ -337,6 +337,7 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaRobotComponent );
+REFLECTION_DEFINE_BASIC( GaRobotCommandEntry );
 REFLECTION_DEFINE_BASIC( GaRobotOperation );
 
 void GaRobotComponent::StaticRegisterClass()
@@ -364,6 +365,19 @@ void GaRobotComponent::StaticRegisterClass()
 	
 	ReRegisterClass< GaRobotComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( 0 ) );
+}
+
+void GaRobotCommandEntry::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Name_", &GaRobotCommandEntry::Name_ ),
+		new ReField( "Shorthand_", &GaRobotCommandEntry::Shorthand_ ),
+		new ReField( "Doc_", &GaRobotCommandEntry::Doc_ ),
+		new ReField( "VarOptions_", &GaRobotCommandEntry::VarOptions_ ),
+	};
+	
+	ReRegisterClass< GaRobotCommandEntry >( Fields );
 }
 
 void GaRobotOperation::StaticRegisterClass()

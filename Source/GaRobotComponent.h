@@ -26,6 +26,31 @@
 typedef ReObjectRef< class GaRobotComponent > GaRobotComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
+// GaRobotCommandEntry
+struct GaRobotCommandEntry
+{
+public:
+	REFLECTION_DECLARE_BASIC( GaRobotCommandEntry );
+public:
+	GaRobotCommandEntry(){};
+	GaRobotCommandEntry(
+			std::string Name,
+			std::string Shorthand,
+			std::string Doc,
+			std::vector< BcU32 > VarOptions ):
+		Name_( Name ),
+		Shorthand_( Shorthand ),
+		Doc_( Doc ),
+		VarOptions_( VarOptions ) 
+	{}
+
+	std::string Name_;
+	std::string Shorthand_;
+	std::string Doc_;
+	std::vector< BcU32 > VarOptions_; 
+};
+
+//////////////////////////////////////////////////////////////////////////
 // GaRobotOperation
 struct GaRobotOperation
 {
