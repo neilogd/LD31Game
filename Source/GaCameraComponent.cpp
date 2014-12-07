@@ -119,26 +119,29 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 	// HACK: 2 only!
 	auto EntityA = ScnCore::pImpl()->findEntity( BcName( "RobotBase", 0 ) );
 	auto EntityB = ScnCore::pImpl()->findEntity( BcName( "RobotBase", 1 ) );
-	auto EntityAPos = EntityA->getParentEntity()->getLocalPosition();
-	auto EntityBPos = EntityB->getParentEntity()->getLocalPosition();
-	auto EntityCentral = ( EntityAPos + EntityBPos ) * 0.5f;
 
-	MaVec3d VectorAtoB = EntityBPos - EntityAPos;
-	MaVec3d VectorPerp = MaVec3d( VectorAtoB.z(), 0.0f, -VectorAtoB.x() );
+	if( EntityA != nullptr && EntityB != nullptr )
+	{
+		auto EntityAPos = EntityA->getParentEntity()->getLocalPosition();
+		auto EntityBPos = EntityB->getParentEntity()->getLocalPosition();
+		auto EntityCentral = ( EntityAPos + EntityBPos ) * 0.5f;
 
-	MaVec3d TargetPosition = ( EntityCentral + VectorPerp * 2.0f ) + MaVec3d( 0.0f, 16.0f, 0.0f );
+		MaVec3d VectorAtoB = EntityBPos - EntityAPos;
+		MaVec3d VectorPerp = MaVec3d( VectorAtoB.z(), 0.0f, -VectorAtoB.x() );
 
-	TargetLookAt_ =
-		( TargetLookAt_ * 0.95f ) +
-		( EntityCentral * 0.05f );
+		MaVec3d TargetPosition = ( EntityCentral + VectorPerp * 2.0f ) + MaVec3d( 0.0f, 16.0f, 0.0f );
 
-	TargetPosition_ =
-		( TargetPosition_ * 0.95f ) +
-		( TargetPosition * 0.05f );
+		TargetLookAt_ =
+			( TargetLookAt_ * 0.95f ) +
+			( EntityCentral * 0.05f );
 
-	Matrix.lookAt( TargetPosition_, TargetLookAt_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
-	Matrix.inverse();
+		TargetPosition_ =
+			( TargetPosition_ * 0.95f ) +
+			( TargetPosition * 0.05f );
 
+		Matrix.lookAt( TargetPosition_, TargetLookAt_, MaVec3d( CameraRotationMatrix.row1().x(), CameraRotationMatrix.row1().y(), CameraRotationMatrix.row1().z() ) );
+		Matrix.inverse();
+	}
 
 #else
 

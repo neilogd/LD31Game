@@ -96,8 +96,14 @@ public:
 	std::vector< class GaRobotComponent* > getRobots( BcU32 Team );
 	std::vector< class GaWeaponComponent* > getWeapons( MaVec3d Position, BcF32 Radius );
 
+	void startNewGame();
+	void reset();
+
+	BcBool isGamePlaying();
+
 public:
 	std::vector< GaRobotOperation > Program_;
+	std::vector< GaRobotOperation > CurrentEnemyAI_;
 
 	ScnCanvasComponentRef Canvas_;
 	ScnMaterialComponentRef Material_;

@@ -218,12 +218,12 @@ void GaWorldComponent::update( BcF32 Tick )
 	 */
 	Hotspot HSStart = 
 	{
-		StartButtonPosition * PanelOffset, MainButtonSize,
+		StartButtonPosition - MainButtonSize * 0.5f, MainButtonSize,
 		BcErrorCode,
 		HotspotType::START
 	};
 
-	Font_->drawCentered( Canvas_, StartButtonPosition, FontSize * 2.0f, "START", RsColour::WHITE, 12 );
+	Font_->drawCentered( Canvas_, StartButtonPosition, FontSize * 1.5f, "START", RsColour::WHITE, 12 );
 
 	Hotspots.push_back( HSStart );
 
@@ -232,12 +232,12 @@ void GaWorldComponent::update( BcF32 Tick )
 	 */
 	Hotspot HSSReset = 
 	{
-		ResetButtonPosition * PanelOffset, MainButtonSize,
+		ResetButtonPosition - MainButtonSize * 0.5f, MainButtonSize,
 		BcErrorCode,
 		HotspotType::RESET
 	};
 
-	Font_->drawCentered( Canvas_, ResetButtonPosition, FontSize* 2.0f, "RESET", RsColour::WHITE, 12 );
+	Font_->drawCentered( Canvas_, ResetButtonPosition, FontSize * 1.5f, "RESET", RsColour::WHITE, 12 );
 
 	Hotspots.push_back( HSSReset );
 
@@ -644,96 +644,97 @@ void GaWorldComponent::update( BcF32 Tick )
 // onClick
 void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosition )
 {
-	BcBool UpdateRobotProgram = BcFalse;
-
-	switch( ClickedHotspot.Type_ )
+	if( isGamePlaying() == BcFalse ||
+		ClickedHotspot.Type_ == HotspotType::START ||
+		ClickedHotspot.Type_ == HotspotType::RESET )
 	{
-	case HotspotType::STATE_MAIN:
-		GuiState_ = GuiState::MAIN;
-		break;
+		switch( ClickedHotspot.Type_ )
+		{
+		case HotspotType::STATE_MAIN:
+			GuiState_ = GuiState::MAIN;
+			break;
 
-	case HotspotType::STATE:
-		GuiState_ = GuiState::SELECTION_STATE;
-		SelectionPosition_ = MousePosition;
-		break;
+		case HotspotType::STATE:
+			GuiState_ = GuiState::SELECTION_STATE;
+			SelectionPosition_ = MousePosition;
+			break;
 
-	case HotspotType::CONDITION:
-		GuiState_ = GuiState::SELECTION;
-		SelectionPosition_ = MousePosition;
-		break;
+		case HotspotType::CONDITION:
+			GuiState_ = GuiState::SELECTION;
+			SelectionPosition_ = MousePosition;
+			break;
 
-	case HotspotType::CONDITION_VAR:
-		GuiState_ = GuiState::SELECTION_VAR;
-		SelectionPosition_ = MousePosition;
-		break;
+		case HotspotType::CONDITION_VAR:
+			GuiState_ = GuiState::SELECTION_VAR;
+			SelectionPosition_ = MousePosition;
+			break;
 
-	case HotspotType::OPERATION:
-		GuiState_ = GuiState::SELECTION;
-		SelectionPosition_ = MousePosition;
-		break;
+		case HotspotType::OPERATION:
+			GuiState_ = GuiState::SELECTION;
+			SelectionPosition_ = MousePosition;
+			break;
 
-	case HotspotType::OPERATION_VAR:
-		GuiState_ = GuiState::SELECTION_VAR;
-		SelectionPosition_ = MousePosition;
-		break;
-		
-	case HotspotType::STATE_SELECTION:
-		GuiState_ = GuiState::MAIN;
-		BcAssert( SelectedID_ < Program_.size() );
-		BcAssert( ClickedHotspot.ID_ < 8 );
-		Program_[ SelectedID_ ].State_ = ClickedHotspot.ID_;
-		UpdateRobotProgram = BcTrue;
-		break;
+		case HotspotType::OPERATION_VAR:
+			GuiState_ = GuiState::SELECTION_VAR;
+			SelectionPosition_ = MousePosition;
+			break;
+			
+		case HotspotType::STATE_SELECTION:
+			GuiState_ = GuiState::MAIN;
+			BcAssert( SelectedID_ < Program_.size() );
+			BcAssert( ClickedHotspot.ID_ < 8 );
+			Program_[ SelectedID_ ].State_ = ClickedHotspot.ID_;
+			break;
 
-	case HotspotType::CONDITION_SELECTION:
-		GuiState_ = GuiState::MAIN;
-		BcAssert( SelectedID_ < Program_.size() );
-		BcAssert( ClickedHotspot.ID_ < ConditionEntries_.size() );
-		Program_[ SelectedID_ ].Condition_ = ConditionEntries_[ ClickedHotspot.ID_ ].Name_;
-		UpdateRobotProgram = BcTrue;
-		break;
+		case HotspotType::CONDITION_SELECTION:
+			GuiState_ = GuiState::MAIN;
+			BcAssert( SelectedID_ < Program_.size() );
+			BcAssert( ClickedHotspot.ID_ < ConditionEntries_.size() );
+			Program_[ SelectedID_ ].Condition_ = ConditionEntries_[ ClickedHotspot.ID_ ].Name_;
+			break;
 
-	case HotspotType::CONDITION_VAR_SELECTION:
-		GuiState_ = GuiState::MAIN;
-		BcAssert( SelectedID_ < Program_.size() );
-		Program_[ SelectedID_ ].ConditionVar_ = ClickedHotspot.ID_;
-		UpdateRobotProgram = BcTrue;
-		break;
+		case HotspotType::CONDITION_VAR_SELECTION:
+			GuiState_ = GuiState::MAIN;
+			BcAssert( SelectedID_ < Program_.size() );
+			Program_[ SelectedID_ ].ConditionVar_ = ClickedHotspot.ID_;
+			break;
 
-	case HotspotType::OPERATION_SELECTION:
-		GuiState_ = GuiState::MAIN;
-		BcAssert( SelectedID_ < Program_.size() );		
-		BcAssert( ClickedHotspot.ID_ < OperationEntries_.size() );
-		Program_[ SelectedID_ ].Operation_ = OperationEntries_[ ClickedHotspot.ID_ ].Name_;
-		UpdateRobotProgram = BcTrue;
-		break;
+		case HotspotType::OPERATION_SELECTION:
+			GuiState_ = GuiState::MAIN;
+			BcAssert( SelectedID_ < Program_.size() );		
+			BcAssert( ClickedHotspot.ID_ < OperationEntries_.size() );
+			Program_[ SelectedID_ ].Operation_ = OperationEntries_[ ClickedHotspot.ID_ ].Name_;
+			break;
 
-	case HotspotType::OPERATION_VAR_SELECTION:
-		GuiState_ = GuiState::MAIN;
-		BcAssert( SelectedID_ < Program_.size() );
-		Program_[ SelectedID_ ].OperationVar_ = ClickedHotspot.ID_;
-		UpdateRobotProgram = BcTrue;
-		break;
+		case HotspotType::OPERATION_VAR_SELECTION:
+			GuiState_ = GuiState::MAIN;
+			BcAssert( SelectedID_ < Program_.size() );
+			Program_[ SelectedID_ ].OperationVar_ = ClickedHotspot.ID_;
+			break;
 
-	case HotspotType::START:
-		// Start game?
-		break;
+		case HotspotType::START:
+			{
+				startNewGame();
+			}
+			break;
 
-	case HotspotType::RESET:
-		// Reset game?
-		break;
+		case HotspotType::RESET:
+			{
+				reset();
+			}
+			break;
 
-	default:
-		break;
+		default:
+			break;
+		}
+
+		SelectedID_ = ClickedHotspot.ID_;
+		HotspotType_ = ClickedHotspot.Type_;
 	}
-
-	if( UpdateRobotProgram )
+	else
 	{
-		PlayerRobot_->setProgram( Program_ );
+		GuiState_ = GuiState::MAIN;
 	}
-
-	SelectedID_ = ClickedHotspot.ID_;
-	HotspotType_ = ClickedHotspot.Type_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -748,61 +749,35 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	View_ = ScnCore::pImpl()->findEntity( "CameraEntity_0" )->getComponentByType< ScnViewComponent >();
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 
-	BcU32 Idx = 0;
-
-	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )->GaRobotComponent*
-	{
-		ScnEntitySpawnParams EntityParams = 
-		{
-			"default", BcName( "RobotEntity", Idx % 2 ), BcName( "RobotEntity", Idx ),
-			MaMat4d(),
-			getParentEntity()
-		};
-
-		EntityParams.Transform_.rotation( Rotation );
-		EntityParams.Transform_.translation( Position );
-		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
-		auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
-
-		++Idx;
-
-		return RobotComponent;
-	};
-
-	PlayerRobot_ = spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-
-	if( PlayerRobot_ != nullptr )
-	{
-		// Test program.
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-		Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
-
-		PlayerRobot_->setProgram( Program_ );
-		EnemyRobot_->setProgram( Program_ );
-	}
-
-
 #if 1
 	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaWorldComponent, &GaWorldComponent::onMouseDown >( this );
 	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaWorldComponent, &GaWorldComponent::onMouseMove >( this );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEDOWN, OnMouseDown );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_MOUSEMOVE, OnMouseMove );
 #endif
+
+	reset();
+	PlayerRobot_ = nullptr;
+	EnemyRobot_ = nullptr;
+
+	// Test program.
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+	Program_.push_back( GaRobotOperation( 0, "cond_never", 0, "op_set_state", 0 ) );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -884,4 +859,75 @@ std::vector< class GaWeaponComponent* > GaWorldComponent::getWeapons( MaVec3d Po
 	}
 
 	return std::move( Weapons );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// startNewGame
+void GaWorldComponent::startNewGame()
+{
+	reset();
+
+	BcU32 Idx = 0;
+	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )->GaRobotComponent*
+	{
+		ScnEntitySpawnParams EntityParams = 
+		{
+			"default", BcName( "RobotEntity", Idx % 2 ), BcName( "RobotEntity", Idx ),
+			MaMat4d(),
+			getParentEntity()
+		};
+
+		EntityParams.Transform_.rotation( Rotation );
+		EntityParams.Transform_.translation( Position );
+		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
+		auto RobotComponent = Entity->getComponentByType< GaRobotComponent >();
+
+		++Idx;
+
+		return RobotComponent;
+	};
+
+	PlayerRobot_ = spawnRobot( MaVec3d( -32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
+	EnemyRobot_ = spawnRobot( MaVec3d( 32.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
+
+	// 
+	PlayerRobot_->setProgram( Program_ );
+
+	auto EnemyProgram = Program_;
+	std::reverse( EnemyProgram.begin(), EnemyProgram.end() );
+	EnemyRobot_->setProgram( EnemyProgram );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// reset
+void GaWorldComponent::reset()
+{
+	// Find all entities that are children of us and kill them all.
+	ScnEntityRef Entity;
+	do
+	{
+		Entity = getParentEntity()->getComponentByType< ScnEntity >( 0 );
+		if( Entity != nullptr )
+		{
+			ScnCore::pImpl()->removeEntity( Entity );
+		}
+	}
+	while( Entity != nullptr );
+	PlayerRobot_ = nullptr;
+	EnemyRobot_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isGamePlaying
+BcBool GaWorldComponent::isGamePlaying()
+{
+	if( PlayerRobot_ != nullptr && EnemyRobot_ != nullptr )
+	{
+		if( PlayerRobot_->Health_ <= 0.0f || EnemyRobot_->Health_ <= 0.0f )
+		{
+			return BcFalse;
+		}
+		return BcTrue;
+	}
+	return BcFalse;
 }

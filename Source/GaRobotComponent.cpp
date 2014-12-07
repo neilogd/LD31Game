@@ -781,5 +781,11 @@ void GaRobotComponent::setProgram( std::vector< GaRobotOperation > Program )
 {
 	Program_ = Program;
 	CurrentState_ = 0;
+	NextOp_ = 0;
 	CurrentOp_ = 0;
+
+	if( Program_.size() > 0 )
+	{
+		CurrentState_ = Program_[ 0 ].State_;
+	}
 }
