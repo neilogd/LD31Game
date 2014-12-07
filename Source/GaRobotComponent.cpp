@@ -235,10 +235,12 @@ std::map< std::string, GaRobotComponent::ProgramFunction > GaRobotComponent::Pro
 				}
 			}
 
-			BcAssert( NearestRobot != nullptr );
-
-			auto RobotPosition = NearestRobot->getParentEntity()->getLocalPosition();
-			ThisRobot->TargetPosition_ = RobotPosition - ( ( RobotPosition - LocalPosition ).normal() * BcF32( Distance ) );
+		
+			if( NearestRobot != nullptr )
+			{
+				auto RobotPosition = NearestRobot->getParentEntity()->getLocalPosition();
+				ThisRobot->TargetPosition_ = RobotPosition - ( ( RobotPosition - LocalPosition ).normal() * BcF32( Distance ) );
+			}
 			return BcErrorCode;
 		}
 	},
@@ -584,28 +586,31 @@ void GaRobotComponent::fireWeaponA( BcF32 Radius )
 {
 	if( WeaponATimer_ < 0.0f && Energy_ > WeaponACost_ )
 	{
-		Energy_ -= WeaponACost_;
-		WeaponATimer_ = WeaponACoolDown_;
-		MoveTimer_ = WeaponACoolDown_ * 0.1f;
-
-		// Spawn entity.
-		ScnEntitySpawnParams EntityParams = 
-		{
-			"default", BcName( "WeaponEntity", 0 ), BcName( "WeaponEntity", 0 ),
-			getParentEntity()->getLocalMatrix(),
-			getParentEntity()->getParentEntity()
-		};
-
-		auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
-		BcAssert( Entity != nullptr );
 		auto Robots = getRobots( 1 - Team_ );
-		auto WeaponComponent = Entity->getComponentByType< GaWeaponComponent >();
-		WeaponComponent->TargetPosition_ = Robots[ 0 ]->getParentEntity()->getLocalPosition();
-		// Randomise target position slightly.
-		WeaponComponent->TargetPosition_ += MaVec3d( 
-			BcRandom::Global.randRealRange( -1.0f, 1.0f ),
-			0.0f,
-			BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * Radius;
+		if( Robots.size() > 0 )
+		{
+			Energy_ -= WeaponACost_;
+			WeaponATimer_ = WeaponACoolDown_;
+			MoveTimer_ = WeaponACoolDown_ * 0.1f;
+
+			// Spawn entity.
+			ScnEntitySpawnParams EntityParams = 
+			{
+				"default", BcName( "WeaponEntity", 0 ), BcName( "WeaponEntity", 0 ),
+				getParentEntity()->getLocalMatrix(),
+				getParentEntity()->getParentEntity()
+			};
+
+			auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
+			BcAssert( Entity != nullptr );
+			auto WeaponComponent = Entity->getComponentByType< GaWeaponComponent >();
+			WeaponComponent->TargetPosition_ = Robots[ 0 ]->getParentEntity()->getLocalPosition();
+			// Randomise target position slightly.
+			WeaponComponent->TargetPosition_ += MaVec3d( 
+				BcRandom::Global.randRealRange( -1.0f, 1.0f ),
+				0.0f,
+				BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * Radius;
+		}
 	}
 }
 
@@ -613,7 +618,34 @@ void GaRobotComponent::fireWeaponA( BcF32 Radius )
 // fireWeaponB
 void GaRobotComponent::fireWeaponB( BcF32 Radius )
 {
-	//
+	if( WeaponATimer_ < 0.0f && Energy_ > WeaponACost_ )
+	{
+		auto Robots = getRobots( 1 - Team_ );
+		if( Robots.size() > 0 )
+		{
+			Energy_ -= WeaponBCost_;
+			WeaponBTimer_ = WeaponBCoolDown_;
+			MoveTimer_ = WeaponBCoolDown_ * 0.1f;
+
+			// Spawn entity.
+			ScnEntitySpawnParams EntityParams = 
+			{
+				"default", BcName( "WeaponEntity", 1 ), BcName( "WeaponEntity", 1 ),
+				getParentEntity()->getLocalMatrix(),
+				getParentEntity()->getParentEntity()
+			};
+
+			auto Entity = ScnCore::pImpl()->spawnEntity( EntityParams );
+			BcAssert( Entity != nullptr );
+			auto WeaponComponent = Entity->getComponentByType< GaWeaponComponent >();
+			WeaponComponent->TargetPosition_ = Robots[ 0 ]->getParentEntity()->getLocalPosition();
+			// Randomise target position slightly.
+			WeaponComponent->TargetPosition_ += MaVec3d( 
+				BcRandom::Global.randRealRange( -1.0f, 1.0f ),
+				0.0f,
+				BcRandom::Global.randRealRange( -1.0f, 1.0f ) ).normal() * Radius;
+		}
+	}
 }
 	
 //////////////////////////////////////////////////////////////////////////

@@ -97,7 +97,7 @@ void GaWeaponComponent::update( BcF32 Tick )
 	// Draw a debug ball..
 	ScnDebugRenderComponent::pImpl()->drawEllipsoid( 
 		getParentEntity()->getWorldPosition(),
-		MaVec3d( 1.0f, 1.0f, 1.0f ),
+		MaVec3d( 1.0f, 1.0f, 1.0f ) * Radius_,
 		RsColour::GREEN,
 		0 );
 

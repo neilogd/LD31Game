@@ -567,7 +567,6 @@ void GaWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	View_ = ScnCore::pImpl()->findEntity( "CameraEntity_0" )->getComponentByType< ScnViewComponent >();
 	Font_ = Parent->getComponentAnyParentByType< ScnFontComponent >();
 
-
 	BcU32 Idx = 0;
 
 	auto spawnRobot = [ this, &Idx ]( MaVec3d Position, MaVec3d Rotation )

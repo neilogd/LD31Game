@@ -141,7 +141,7 @@ void GaCameraComponent::preUpdate( BcF32 Tick )
 	Dimensions = MaVec3d( MaxDimensions, MaxDimensions, MaxDimensions );
 	AABB = MaAABB( Centre - Dimensions * 0.75f, Centre + Dimensions * 0.75f );
 
-	MaVec3d TargetPosition = AABB.faceCentre( MaAABB::FRONT ) + MaVec3d( 0.0f, MaxDimensions * 0.5f, 0.0f ); 
+	MaVec3d TargetPosition = ( AABB.faceCentre( MaAABB::FRONT ) * 1.5f ) + MaVec3d( 0.0f, MaxDimensions * 0.75f, 0.0f ); 
 
 	TargetLookAt_ =
 		( TargetLookAt_ * 0.95f ) +
