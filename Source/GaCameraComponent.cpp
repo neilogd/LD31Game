@@ -174,7 +174,7 @@ void GaCameraComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
-
+#if 0
 	OsEventInputMouse::Delegate OnMouseDown = OsEventInputMouse::Delegate::bind< GaCameraComponent, &GaCameraComponent::onMouseDown >( this );
 	OsEventInputMouse::Delegate OnMouseUp = OsEventInputMouse::Delegate::bind< GaCameraComponent, &GaCameraComponent::onMouseUp >( this );
 	OsEventInputMouse::Delegate OnMouseMove = OsEventInputMouse::Delegate::bind< GaCameraComponent, &GaCameraComponent::onMouseMove >( this );
@@ -190,7 +190,7 @@ void GaCameraComponent::onAttach( ScnEntityWeakRef Parent )
 
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, OnKeyboardDown );
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, OnKeyboardUp );
-
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,8 +199,9 @@ void GaCameraComponent::onAttach( ScnEntityWeakRef Parent )
 void GaCameraComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
-
+#if 0
 	OsCore::pImpl()->unsubscribeAll( this );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

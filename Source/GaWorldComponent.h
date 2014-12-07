@@ -100,7 +100,7 @@ public:
 	ScnFontComponentRef Font_;
 
 	std::vector< OsEventInputMouse > MouseEvents_;
-	OsEventInputMouse MouseMoveEvent_;
+	static OsEventInputMouse MouseMoveEvent_;
 
 	// Main/all gui stuff.
 	GuiState GuiState_;

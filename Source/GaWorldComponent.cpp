@@ -87,6 +87,9 @@ namespace
 	};
 }
 
+OsEventInputMouse GaWorldComponent::MouseMoveEvent_;
+
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 DEFINE_RESOURCE( GaWorldComponent );
@@ -141,6 +144,8 @@ void GaWorldComponent::initialise( const Json::Value& Object )
 	GuiState_ = GuiState::MAIN;
 	SelectedID_ = BcErrorCode;
 	HotspotType_ = HotspotType::INVALID;
+
+	BcMemZero( &MouseMoveEvent_, sizeof( MouseMoveEvent_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,7 +274,6 @@ void GaWorldComponent::update( BcF32 Tick )
 
 			TLCorner.x( TLCorner.x() + Button.x() );
 
-
 			Hotspots.push_back( HSCondition );
 			Hotspots.push_back( HSConditionVar );
 			Hotspots.push_back( HSOperation );
@@ -304,11 +308,13 @@ void GaWorldComponent::update( BcF32 Tick )
 	Canvas_->popMatrix();
 
 	// Draw panel over the top of what we have already.
-	if( GuiState_ == GuiState::SELECTION )
+	if( GuiState_ == GuiState::SELECTION || GuiState_ == GuiState::SELECTION_VAR )
 	{
 		PanelOffset.translation( MaVec3d( SelectionPosition_.x(), SelectionPosition_.y(), 0.0f ) );
 		Canvas_->pushMatrix( PanelOffset );
 
+		////////////////////////////////////////////////////
+		// Condition + operation.
 		if( HotspotType_ == HotspotType::CONDITION ||
 			HotspotType_ == HotspotType::OPERATION )
 		{
@@ -318,6 +324,7 @@ void GaWorldComponent::update( BcF32 Tick )
 
 			MaVec2d Position( 0.0f, 0.0f );
 			MaVec2d TotalSize( 0.0f, 0.0f );
+
 			for( BcU32 Idx = 0; Idx < CommandEntries.size(); ++Idx )
 			{
 				Hotspot HSSelection = 
@@ -340,6 +347,82 @@ void GaWorldComponent::update( BcF32 Tick )
 
 				const auto& Entry = CommandEntries[ Idx ];
 				auto Size = Font_->draw( Canvas_, Position, FontSize, Entry.Doc_, Colour, BcFalse, 21 );
+				Position.y( Position.y() + FontSize );
+
+				TotalSize.x( std::max( Size.x(), TotalSize.x() ) );
+				TotalSize.y( TotalSize.y() + FontSize );
+
+				HSSelection.Extents_ = Size;
+
+				Hotspots.push_back( HSSelection );
+			}
+
+			Canvas_->setMaterialComponent( Material_ );
+			Canvas_->drawSprite( MaVec2d( 0.0f, 0.0f ), TotalSize, 0, RsColour( 1.0f, 1.0f, 1.0f, 0.8f ), 20 );
+
+		}
+
+		////////////////////////////////////////////////////
+		// Condition + operation vars
+		if( HotspotType_ == HotspotType::CONDITION_VAR ||
+			HotspotType_ == HotspotType::OPERATION_VAR )
+		{
+			std::vector< BcU32 > VarOptions;
+
+			MaVec2d Position( 0.0f, 0.0f );
+			MaVec2d TotalSize( 0.0f, 0.0f );
+
+			if( HotspotType_ == HotspotType::CONDITION_VAR )
+			{
+				auto FoundCondIt = std::find_if( ConditionEntries_.begin(), ConditionEntries_.end(),
+					[ & ]( const GaRobotCommandEntry& Entry )
+					{
+						return Entry.Name_ == Program_[ SelectedID_ ].Condition_;
+					} );
+
+				if( FoundCondIt != ConditionEntries_.end() )
+				{
+					VarOptions = FoundCondIt->VarOptions_;
+				}
+			}
+			else if( HotspotType_ == HotspotType::OPERATION_VAR )
+			{
+				auto FoundCondIt = std::find_if( OperationEntries_.begin(), OperationEntries_.end(),
+					[ & ]( const GaRobotCommandEntry& Entry )
+					{
+						return Entry.Name_ == Program_[ SelectedID_ ].Operation_;
+					} );
+
+				if( FoundCondIt != OperationEntries_.end() )
+				{
+					VarOptions = FoundCondIt->VarOptions_;
+				}
+			}
+
+			for( BcU32 Idx = 0; Idx < VarOptions.size(); ++Idx )
+			{
+				Hotspot HSSelection = 
+				{
+					Position * PanelOffset, MaVec2d(),
+					VarOptions[ Idx ],
+					HotspotType_ == HotspotType::CONDITION_VAR ?
+						HotspotType::CONDITION_VAR_SELECTION : HotspotType::OPERATION_VAR_SELECTION
+				};
+
+				RsColour Colour = RsColour::BLACK;
+
+				if( HSSelection.ID_ == LastHighlightedHotspot_.ID_ &&
+					HSSelection.Type_ == LastHighlightedHotspot_.Type_ )
+				{
+					Colour = RsColour::GREEN;
+				}
+
+				BcF32 FontSize = Extents.y() * 0.5f;
+
+				BcChar Buffer[ 1024 ];
+				BcSPrintf( Buffer, "%u", HSSelection.ID_ );
+				auto Size = Font_->draw( Canvas_, Position, FontSize, Buffer, Colour, BcFalse, 21 );
+
 				Position.y( Position.y() + FontSize );
 
 				TotalSize.x( std::max( Size.x(), TotalSize.x() ) );
@@ -433,6 +516,24 @@ void GaWorldComponent::onClick( const Hotspot& ClickedHotspot, MaVec2d MousePosi
 		SelectionPosition_ = MousePosition;
 		break;
 		
+
+	case HotspotType::CONDITION_SELECTION:
+		GuiState_ = GuiState::MAIN;
+		break;
+
+	case HotspotType::CONDITION_VAR_SELECTION:
+		GuiState_ = GuiState::MAIN;
+		break;
+
+	case HotspotType::OPERATION_SELECTION:
+		GuiState_ = GuiState::MAIN;
+		break;
+
+	case HotspotType::OPERATION_VAR_SELECTION:
+		GuiState_ = GuiState::MAIN;
+		break;
+
+
 	default:
 		break;
 	}

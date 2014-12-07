@@ -359,6 +359,7 @@ void GaRobotComponent::StaticRegisterClass()
 		new ReField( "WeaponBCoolDown_", &GaRobotComponent::WeaponBCoolDown_ ),
 		new ReField( "WeaponBCost_", &GaRobotComponent::WeaponBCost_ ),
 		new ReField( "WeaponBTimer_", &GaRobotComponent::WeaponBTimer_ ),
+		new ReField( "MoveTimer_", &GaRobotComponent::MoveTimer_ ),
 		new ReField( "Program_", &GaRobotComponent::Program_ ),
 		new ReField( "CurrentState_", &GaRobotComponent::CurrentState_ ),
 	};
@@ -413,6 +414,7 @@ void GaRobotComponent::initialise( const Json::Value& Object )
 	WeaponBCoolDown_ = 4.0f;
 	WeaponBCost_ = 25.0f;
 	WeaponBTimer_ = 0.0f;
+	MoveTimer_ = 0.0f;
 	
 	CurrentState_ = 0;
 }
