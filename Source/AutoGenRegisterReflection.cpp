@@ -114,6 +114,7 @@ void AutoGenRegisterReflection()
 	ScnLightComponent::StaticRegisterClass();
 	ScnRenderTarget::StaticRegisterClass();
 	ScnFont::StaticRegisterClass();
+	ScnFontDrawParams::StaticRegisterClass();
 	ScnFontComponent::StaticRegisterClass();
 	ScnMaterial::StaticRegisterClass();
 	ScnMaterialComponent::StaticRegisterClass();
