@@ -219,22 +219,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "Dist/Content/Engine/font.hlsl",
-			"settings":
-			{
-				"buffer_size": 1301,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "Dist/Content/shaders.pkg",
-			"settings":
-			{
-				"buffer_size": 1321,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
@@ -291,6 +275,10 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/home/neilo/Dev/PsybrusDev/LD31Game"
+	],
 	"file_history":
 	[
 		"/home/neilo/Dev/PsybrusDev/DevelopmentGame/Psybrus/External/glew/include/GL/glew.h",
@@ -424,7 +412,7 @@
 	],
 	"find":
 	{
-		"height": 35.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -610,70 +598,6 @@
 	"groups":
 	[
 		{
-			"selected": 0,
-			"sheets":
-			[
-				{
-					"buffer": 0,
-					"file": "Dist/Content/Engine/font.hlsl",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1301,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								416,
-								416
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "Dist/Content/shaders.pkg",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1321,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1157,
-								1157
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 286.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				}
-			]
-		},
-		{
 			"sheets":
 			[
 			]
@@ -696,18 +620,11 @@
 				0,
 				1,
 				1
-			],
-			[
-				1,
-				0,
-				2,
-				1
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.5,
 			1.0
 		],
 		"rows":
@@ -729,7 +646,7 @@
 	{
 		"height": 112.0
 	},
-	"project": "DevelopmentGame.sublime-project",
+	"project": "LD31Game.sublime-project",
 	"replace":
 	{
 		"height": 42.0
